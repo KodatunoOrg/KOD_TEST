@@ -1,4 +1,5 @@
 ﻿// UserSampleを記述
+#include "StdAfxQt.h"
 #include "SampleFunc.h"
 #include <iostream>
 #include <fstream>

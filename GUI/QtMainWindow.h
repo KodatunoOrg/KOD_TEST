@@ -8,6 +8,7 @@
 #include <QSettings>
 #include <QMessageBox>
 
+#include "StdAfxQt.h"
 #include "Kodatuno.h"
 #include "QtUserStatDialog.h"
 

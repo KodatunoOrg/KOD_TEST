@@ -20,11 +20,13 @@
 #include "QtSweepSurfDialog.h"
 #include "QtGui"
 
+#include "KodatunoKernel.h"
+
 // Constants: GeneralDefines
 // Non
 
 // Class: GUI_Interface
-class GUI_Interface
+class GUI_Interface : public GUI_Interface_BASE
 {
 public:
 // Function: SetMesage

@@ -1,4 +1,5 @@
-﻿#include "Command.h"
+﻿#include "StdAfxQt.h"
+#include "Command.h"
 
 // Function: SetCmdList
 // コマンドを追加する

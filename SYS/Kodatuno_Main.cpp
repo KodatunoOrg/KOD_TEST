@@ -1,5 +1,4 @@
-﻿
-
+﻿#include "StdAfxQt.h"
 #include "Kodatuno.h"
 
 // Function: InitializeWin

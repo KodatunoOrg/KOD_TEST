@@ -1,4 +1,5 @@
-﻿#include "UserFunc.h"
+﻿#include "StdAfxQt.h"
+#include "UserFunc.h"
 
 // User用関数を5つまで登録することができます。
 // 開発者はこれらに独自の処理を追加してください

@@ -3,11 +3,11 @@
 #ifndef _KODATUNO_H_
 #define _KODATUNO_H_
 
+#include "KodatunoKernel.h"
 #include "IGES_Parser.h"
 #include "STL_Parser.h"
 #include "VRML_Parser.h"
 #include "DXF_Parser.h"
-#include "StdAfx.h"
 #include "Quaternion.h"
 #include "Describe_BODY.h"
 #include "UserFunc.h"

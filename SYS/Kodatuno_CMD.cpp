@@ -1,4 +1,5 @@
-﻿#include"Kodatuno.h"
+﻿#include "StdAfxQt.h"
+#include "Kodatuno.h"
 
 
 //////////////////////////////////////////////////////

@@ -1,5 +1,6 @@
 ﻿#include "QtSweepSurfDialog.h"
 #include "ui_QtSweepSurfDialog.h"
+#include "StdAfxQt.h"
 #include "Kodatuno.h"
 
 // Function: QtSweepSurfDialog

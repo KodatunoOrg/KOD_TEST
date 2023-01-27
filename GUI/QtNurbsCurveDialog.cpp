@@ -1,5 +1,7 @@
 ﻿#include "QtNurbsCurveDialog.h"
 #include "ui_QtNurbsCurveDialog.h"
+
+#include "StdAfxQt.h"
 #include "Kodatuno.h"
 
 // Constants: title

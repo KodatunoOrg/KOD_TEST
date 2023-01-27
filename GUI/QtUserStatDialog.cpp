@@ -1,5 +1,6 @@
 ﻿#include "QtUserStatDialog.h"
 #include "ui_QtUserStatDialog.h"
+#include "StdAfxQt.h"
 #include "Kodatuno.h"
 
 // Function: QtUserStatDialog

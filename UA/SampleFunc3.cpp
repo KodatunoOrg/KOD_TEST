@@ -1,3 +1,4 @@
+#include "StdAfxQt.h"
 #include "SampleFunc.h"
 
 // Function: Smp3xCAM

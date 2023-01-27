@@ -1,7 +1,7 @@
 ﻿#ifndef _USER_FUNC_H_
 #define _USER_FUNC_H_
 
-#include "StdAfx.h"
+#include "KodatunoKernel.h"
 #include "Command.h"
 #include "BODY.h"
 #include "SampleFunc.h"

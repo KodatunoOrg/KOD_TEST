@@ -1,6 +1,6 @@
 ﻿// UserSampleヘッダ
 
-#include "StdAfx.h"			// 汎用
+#include "KodatunoKernel.h"	// 汎用
 #include "NURBS_Func.h"		// NURBS幾何計算関連
 #include "Describe_BODY.h"	// BODY描画関連
 #include "BODY.h" 			// BODYクラス

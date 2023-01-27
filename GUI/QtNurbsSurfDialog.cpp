@@ -1,5 +1,7 @@
 ﻿#include "QtNurbsSurfDialog.h"
 #include "ui_QtNurbsSurfDialog.h"
+
+#include "StdAfxQt.h"
 #include "Kodatuno.h"
 
 // Constant: title

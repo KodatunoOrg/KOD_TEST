@@ -1,7 +1,7 @@
 ﻿#ifndef _COMMAND_H_
 #define _COMMAND_H_
 
-#include"StdAfx.h"
+#include "KodatunoKernel.h"
 
 // Constants: General Defines
 // MAXCOMMANDLEN -					コマンド文字数の最大値(16)
