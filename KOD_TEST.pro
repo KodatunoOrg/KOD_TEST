@@ -1,3 +1,7 @@
+# Preferences -> ビルドと実行 -> Default Build Properties -> Default build directory を
+# ./build
+# に変えておく
+
 QT += core gui opengl
 QT += widgets
 QT += openglwidgets
@@ -60,9 +64,6 @@ FORMS    += \
 RESOURCES += \
     GUI/icons.qrc
 
-LIBS += -lopengl32 -lglu32
-LIBS += -L$$PWD/../Kernel/debug/ -llibKernel
-
 TRANSLATIONS += \
     KOD_TEST_ja_JP.ts
 CONFIG += lrelease
@@ -72,3 +73,7 @@ CONFIG += embed_translations
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+# libKernel は OpenGL の前に定義しないとリンクエラーになる
+LIBS += -L$$PWD/../Kernel/build/debug/ -llibKernel
+LIBS += -lopengl32 -lglu32
