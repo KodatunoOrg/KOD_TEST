@@ -26,7 +26,7 @@
 // Non
 
 // Class: GUI_Interface
-class GUI_Interface : public GUI_Interface_BASE
+class GUI_Interface
 {
 public:
 // Function: SetMesage
