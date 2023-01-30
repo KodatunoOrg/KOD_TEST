@@ -3,7 +3,6 @@
 
 #include "KodatunoKernel.h"
 #include "Command.h"
-#include "BODY.h"
 #include "SampleFunc.h"
 
 // Constants: General Defines

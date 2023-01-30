@@ -1,10 +1,6 @@
 ﻿// UserSampleヘッダ
 
-#include "KodatunoKernel.h"	// 汎用
-#include "NURBS_Func.h"		// NURBS幾何計算関連
-#include "Describe_BODY.h"	// BODY描画関連
-#include "BODY.h" 			// BODYクラス
-#include "IGES_Parser.h"  	// IGES読み込み関連
+#include "KodatunoKernel.h"
 
 // Function: SmpRegistBody
 // Sample1: IGESファイルを読み込み，Bodyとして登録する

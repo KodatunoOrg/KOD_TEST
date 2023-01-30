@@ -20,8 +20,6 @@
 #include "QtSweepSurfDialog.h"
 #include "QtGui"
 
-#include "KodatunoKernel.h"
-
 // Constants: GeneralDefines
 // Non
 

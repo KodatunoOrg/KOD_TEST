@@ -47,7 +47,6 @@ HEADERS += \
     GUI/QtMainWindow.h \
     GUI/QtDescribeView.h \
     GUI/QtConsole.h \
-    Sys/Kutil.h \
     Sys/Kodatuno.h \
     Sys/Command.h \
     UA/UserFunc.h \
