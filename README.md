@@ -19,6 +19,7 @@ Kodatuno は，金沢大学マンマシン研究室で開発されているオ�
 ライブラリのビルド方法は <https://github.com/KodatunoOrg/Kernel> を参照してください．
 
 * QtからKOD_TEST.proのプロジェクトファイルを開き，プロジェクトの設定を各自の環境に合わせて変更してください．
+基本的に上記カーネル内の KodatunoKernel.h をインクルードすれば Kodatuno の機能が使えるようになります．
 
 Kernelのインクルードパス
 ```
