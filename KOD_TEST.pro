@@ -16,7 +16,7 @@ INCLUDEPATH += \
     SYS/ \
     UA/ \
     GUI/ \
-    $$PWD/../Kernel/include/
+    $$PWD/../Kernel/include/ # 各自の環境に合わせて変更
 
 SOURCES += \
     GUI/QtMain.cpp \
@@ -74,5 +74,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 # libKernel は OpenGL の前に定義しないとリンクエラーになる
-LIBS += -L$$PWD/../Kernel/build/debug/ -llibKernel
+LIBS += -L$$PWD/../Kernel/build/debug/ -llibKernel # 各自の環境に合わせて変更
 LIBS += -lopengl32 -lglu32
