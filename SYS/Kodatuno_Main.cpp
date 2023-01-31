@@ -271,7 +271,7 @@ void KODatUNO::Draw_NurbsCurve(BODY *Curr_body)
 		glColor3f(Curr_body->NurbsC[i].Dstat.Color[0],Curr_body->NurbsC[i].Dstat.Color[1],Curr_body->NurbsC[i].Dstat.Color[2]);
         // IGESディレクトリ部の"Entity Use Flag"が0かつ，"Blank Status"が0の場合は実際のモデル要素として描画する
         if(Curr_body->NurbsC[i].EntUseFlag == GEOMTRYELEM && Curr_body->NurbsC[i].BlankStat == DISPLAY){
-			DrawNurbsCurve(Curr_body->NurbsC[i]);						// 描画
+            DrawNurbsCurve(&Curr_body->NurbsC[i]);						// 描画
 		}
 		glPopName();		// ネームスタックの先頭を削除
 	}
@@ -289,7 +289,7 @@ void KODatUNO::Draw_NurbsSurface(BODY *Curr_body)
 			continue;		// 描画しない
 		else{
 			glPushName(i);
-			DrawNurbsSurfe(Curr_body->NurbsS[i]);	// NURBS曲面描画
+            DrawNurbsSurfe(&Curr_body->NurbsS[i]);	// NURBS曲面描画
 			glPopName();
 		}
 	}
@@ -304,7 +304,7 @@ void KODatUNO::Draw_TrimSurfe(BODY *Curr_body)
 {
 	for(int i=0;i<Curr_body->TypeNum[_TRIMMED_SURFACE];i++){
 		glPushName(i);			// ネームスタックの先頭にiを挿入
-		DrawTrimdSurf(Curr_body->TrmS[i]);
+        DrawTrimdSurf(&Curr_body->TrmS[i]);
 		glPopName();			// ネームスタックの先頭を削除
 	}
 }
@@ -2297,19 +2297,19 @@ void KODatUNO::DispUVinfo()
         else if(obj->Type == _TRIMMED_SURFACE){
             // 外周面上線
             glColor3f(1,0,0);	// 赤
-            CompC = (COMPC *)body->TrmS[obj->Num].pTO->pB;
+            CompC = body->TrmS[obj->Num].pTO->pB.CompC;
             //fprintf(stderr,"Nuber of Outer Trim Curve : %d\n",CompC->N);	// debug
             for(int i=0;i<CompC->N;i++){
-                DrawNurbsCurve(*(NURBSC *)CompC->pDE[i]);
+                DrawNurbsCurve(CompC->pDE[i].NurbsC);
             }
 
             // 内周面上線
             glColor3f(0,0,1);	// 青
             for(int i=0;i< body->TrmS[obj->Num].n2;i++){
-                CompC = (COMPC *)body->TrmS[obj->Num].pTI[i]->pB;
+                CompC = body->TrmS[obj->Num].pTI[i]->pB.CompC;
                 //fprintf(stderr,"Nuber of Inner Trim Curve : %d\n",CompC->N);	// debug
                 for(int j=0;j<CompC->N;j++){
-                    DrawNurbsCurve(*(NURBSC *)CompC->pDE[j]);
+                    DrawNurbsCurve(CompC->pDE[j].NurbsC);
                 }
             }
         }
