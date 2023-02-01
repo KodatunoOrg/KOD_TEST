@@ -502,8 +502,8 @@ int KODatUNO::OpenFile()
 			return KOD_ERR;
 		}
 
-		strcpy(body->Name,fname.c_str());       // ファイル名をbody名として登録
-		body->Mom = BodyList.add(body);         // リストに読み込んだbodyを登録
+        body->Name = fname;                     // ファイル名をbody名として登録
+        body->Mom = BodyList.add(body);         // リストに読み込んだbodyを登録
 		GuiIF.AddBodyNameToWin(fname.c_str());	// Bodyリストウィンドウに新たに読み込んだBODY名を付加
 		GuiIF.SetMessage("Finished");
 	}
@@ -1798,7 +1798,7 @@ int KODatUNO::GenSurface(Coord Axis,double Prop,int Flag)
 			newbody->ChangeStatColor(newbody->NurbsS[0].Dstat.Color,0.2,0.2,1.0,0.5);		// 青色
 			newbody->Mom = BodyList.add(newbody);									// リストにnewbodyを登録
             GuiIF.AddBodyNameToWin("NewBody");										// Bodyリストウィンドウにもnewbodyを登録
-            strcpy(newbody->Name,"NewBody");										// とりあえずnewbodyの名前は"NewBody"としておく
+            newbody->Name = "NewBody";                                              // とりあえずnewbodyの名前は"NewBody"としておく
 		}
 	}
 	DrawBODYFlag = KOD_TRUE;				// BODY描画してもOKフラグON
