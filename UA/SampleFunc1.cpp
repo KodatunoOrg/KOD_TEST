@@ -55,10 +55,10 @@ int SmpTransBody(BODYList *BodyList,OBJECTList *ObjList, int PickCount, double P
 	OBJECT *obj = (OBJECT *)ObjList->getData(0);			// 一番最初にセレクションされたエンティティの情報を得る
 	BODY *body = (BODY *)BodyList->getData(obj->Body);		// 一番最初にセレクションされたBODYの実体を得る
 
-	Coord rot_ax = SetCoord(0,0,1);		// 回転軸
+	Coord rot_ax(0,0,1);				// 回転軸
 	double deg = 90;					// 回転角度
-	Coord shift = SetCoord(0,0,10);		// シフト量
-	Coord expand = SetCoord(2,2,2);		// 拡大量
+	Coord shift(0,0,10);				// シフト量
+	Coord expand(2,2,2);				// 拡大量
 
 	body->RotBody(rot_ax,deg);			// Z軸周りに90度回転
 	body->ShiftBody(shift);				// Z方向に10シフト
@@ -96,7 +96,7 @@ int SmpDivCurves(BODYList *BodyList,OBJECTList *ObjList, int PickCount, double P
 			int ptnum = nfunc.CalcDeltaPtsOnNurbsC(&body->NurbsC[obj->Num],divnum,div_pt);		// 分割点を求める
             for(int j=0;j<ptnum;j++){
                 DrawPoint(div_pt[j],1,3,green);					// 分割点を表示
-                double dist = CalcDistance(div_pt[j],div_pt[j+1]);
+                double dist = div_pt[j].CalcDistance(div_pt[j+1]);
                 qDebug("%lf",dist);
 			}
 		}
@@ -148,9 +148,9 @@ int SmpNearestPt(BODYList *BodyList,OBJECTList *ObjList, int PickCount, double P
 
 	// 任意の点を3つ用意
 	Coord P[3];
-	P[0] = SetCoord(0,0,100);
-	P[1] = SetCoord(100,50,50);
-	P[2] = SetCoord(0,100,-50);
+	P[0].SetCoord(0,0,100);
+	P[1].SetCoord(100,50,50);
+	P[2].SetCoord(0,100,-50);
 
 	// 近傍点を得る
 	for(int i=0;i<3;i++){

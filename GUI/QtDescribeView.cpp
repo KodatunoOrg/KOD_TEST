@@ -226,7 +226,7 @@ void QtDescribeView::drawVector(Coord s,Coord e,double vec_len,double width,doub
     glDisable(GL_LIGHTING);
     glLineWidth(width);
     glColor3f(color[0],color[1],color[2]);
-    e = MulCoord(e,vec_len);
+    e = e*vec_len;
     glBegin(GL_LINES);
     glVertex3d(s.x,s.y,s.z);
     glVertex3d(s.x+e.x,s.y+e.y,s.z+e.z);

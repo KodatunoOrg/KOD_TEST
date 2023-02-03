@@ -40,15 +40,15 @@ USER::USER()
 int USER::ExecSampleFunc0(BODYList *BodyList,OBJECTList *ObjList,int PickCount)
 {
     Coord p1,p2,p3,q2,q1,q3;
-    Coord n = SetCoord(0,0.707107,-0.707107);
-    Coord g = SetCoord(0.793604,138.12471,145.195778);
-    p1 = SetCoord(3.095203,138.12471,145.195778);
-    p2 = SetCoord(-0.357196,139.534146,146.605213);
-    p3 = SetCoord(-0.357196,136.715274,143.786342);
-    Coord V = SetCoord(-0.004767,-0.428104,-0.903717);
-    q1 = SetCoord(0.637727,137.906583,144.977651);
-    q2 = SetCoord(-1.57427,135.496772,138.284594);
-    q3 = SetCoord(-1.57427,135.496772,138.284594);
+    Coord n(0,0.707107,-0.707107);
+    Coord g(0.793604,138.12471,145.195778);
+    p1.SetCoord(3.095203,138.12471,145.195778);
+    p2.SetCoord(-0.357196,139.534146,146.605213);
+    p3.SetCoord(-0.357196,136.715274,143.786342);
+    Coord V(-0.004767,-0.428104,-0.903717);
+    q1.SetCoord(0.637727,137.906583,144.977651);
+    q2.SetCoord(-1.57427,135.496772,138.284594);
+    q3.SetCoord(-1.57427,135.496772,138.284594);
 
     double red[3] = {1,0,0};
     double blu[3] = {0,0,1};
@@ -57,7 +57,7 @@ int USER::ExecSampleFunc0(BODYList *BodyList,OBJECTList *ObjList,int PickCount)
     DrawLine(p1,p2,1,red);
     DrawLine(p2,p3,1,red);
     DrawLine(p3,p1,1,red);
-    DrawVector(SetCoord(0.5,0,200),V,-1000,1,blu);
+    DrawVector(Coord(0.5,0,200),V,-1000,1,blu);
     DrawPoint(g,1,1,grn);
     DrawVector(g,n,10,1,blu);
 

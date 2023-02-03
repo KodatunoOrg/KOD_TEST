@@ -44,12 +44,12 @@ int SmpContourLine(BODYList *BodyList,OBJECTList *ObjList, int PickCount, double
 	double delta = Prop[3];			// 等高線生成のZ間隔
 	int step = fabs(upper - under)/delta + 1;	// 等高線の本数を算出
 
-    Coord nvec = SetCoord(0,0,1);	// 平面の法線ベクトルを指定(X-Y平面とする)
+    Coord nvec(0,0,1);				// 平面の法線ベクトルを指定(X-Y平面とする)
     FILE *fp = fopen("deb.csv","w");
 	// 平面をZ方向にシフトしていきながら，等高線を算出する
 	for(int i=0;i<step;i++){
 		double z = under + delta*(double)i;	// 現在の平面のZ位置
-		Coord pt = SetCoord(0,0,z);			// 現在の平面上の1点を指定
+		Coord pt(0,0,z);			// 現在の平面上の1点を指定
 
 		sprintf(mes,"z=%.3lf  calculating...",z);
 		GuiIF.SetMessage(mes);
@@ -59,7 +59,7 @@ int SmpContourLine(BODYList *BodyList,OBJECTList *ObjList, int PickCount, double
 		for(int i=0;i<num;i++){		// 交点の数だけループ
 			Coord p = nfunc.CalcNurbsSCoord(S,t[i].x,t[i].y);			// 交点をパラメータ値から座標値へ変換
 			Coord nt = nfunc.CalcNormVecOnNurbsS(S,t[i].x,t[i].y);		// 交点上の法線ベクトルを計算
-			nt = MulCoord(nt,-2);											// 外向き法線ベクトルへ変換し適当な長さにする
+			nt = nt*(-2);												// 外向き法線ベクトルへ変換し適当な長さにする
 			DrawPoint(p,1,3,blue);			// 交点を描画
 			DrawVector(p,nt,1,1,red);		// 法線ベクトルを描画
             fprintf(fp,"%lf,%lf,%lf\n",p.x,p.y,p.z);

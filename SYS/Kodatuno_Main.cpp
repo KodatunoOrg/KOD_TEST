@@ -702,7 +702,7 @@ void KODatUNO::SetMaxCoord()
 		for(int j=0;j<body->TypeNum[_NURBSS];j++){
 			for(int u=0;u<body->NurbsS[j].K[0];u++){
 				for(int v=0;v<body->NurbsS[j].K[1];v++){
-					double d = CalcEuclid(body->NurbsS[j].cp[u][v]);
+					double d = body->NurbsS[j].cp[u][v].CalcEuclid();
 					if(d > max)	max = d;
 				}
 			}

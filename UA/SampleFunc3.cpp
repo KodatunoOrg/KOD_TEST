@@ -45,7 +45,7 @@ void Smp3xCAM(NURBSS *S,NURBSC *C,double R,int N,double H,int D)
 			for(int k=0;k<ptnum[j];k++){
 				double del = (H - path[D][j][k].z)/(double)D;
 				double Z = H - del*(double)i;
-				path[i][j][k] = SetCoord(path[D][j][k].x,path[D][j][k].y,Z);
+				path[i][j][k].SetCoord(path[D][j][k].x,path[D][j][k].y,Z);
 			}
 		}
 	}

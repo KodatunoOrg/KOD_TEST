@@ -182,7 +182,7 @@ void CmdMoveBody(int argc,char *argv[])
 					argc--; argv++;
 					d[i] = atof(argv[0]);
 				}
-				Kodatuno.GetShiftBody(SetCoord(d[0],d[1],d[2]));
+                Kodatuno.GetShiftBody(Coord(d[0],d[1],d[2]));
 			break;
 			}
 		}while(*++p);
@@ -219,7 +219,7 @@ void CmdRotateBody(int argc,char *argv[])
 					argc--; argv++;
 					axd[i] = atof(argv[0]);
 				}
-				Kodatuno.GetRotateBody(SetCoord(axd[0],axd[1],axd[2]),axd[3]);
+                Kodatuno.GetRotateBody(Coord(axd[0],axd[1],axd[2]),axd[3]);
 			break;
 			}
 		}while(*++p);
@@ -324,7 +324,7 @@ void CmdExpand(int argc,char *argv[])
 					argc--; argv++;
 					axd[i] = atof(argv[0]);
 				}
-				Kodatuno.ExpandBody(SetCoord(axd[0],axd[1],axd[2]));
+				Kodatuno.ExpandBody(Coord(axd[0],axd[1],axd[2]));
 			break;
 			}
 		}while(*++p);
