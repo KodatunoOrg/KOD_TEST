@@ -1,45 +1,45 @@
-#include "StdAfxQt.h"
+ï»¿#include "StdAfxQt.h"
 #include "SampleFunc.h"
 
 // Function: Smp3xCAM
-// ƒXƒLƒƒƒ“ƒpƒX‚ð¶¬‚·‚éƒVƒ“ƒvƒ‹‚È3xCAM
+// ã‚¹ã‚­ãƒ£ãƒ³ãƒ‘ã‚¹ã‚’ç”Ÿæˆã™ã‚‹ã‚·ãƒ³ãƒ—ãƒ«ãª3xCAM
 //
 // Parameter:
-// *S - ‰ÁH–Êiˆê‚Â‚Ì–Ê‚Ì‚Ýj
-// *C - ¶¬‚·‚éƒXƒLƒƒƒ“ƒpƒX‚ÌƒKƒCƒhƒJ[ƒu
-// R - ƒ{[ƒ‹ƒGƒ“ƒhƒ~ƒ‹”¼Œa
-// N - ƒXƒLƒƒƒjƒ“ƒOƒ‰ƒCƒ“•ªŠ„”(N < 100)
-// H - ‘fÞã–Ê‚ÌZÀ•W
-// D - Z•ûŒü•ªŠ„”i‘e‰ÁH—pj
+// *S - åŠ å·¥é¢ï¼ˆä¸€ã¤ã®é¢ã®ã¿ï¼‰
+// *C - ç”Ÿæˆã™ã‚‹ã‚¹ã‚­ãƒ£ãƒ³ãƒ‘ã‚¹ã®ã‚¬ã‚¤ãƒ‰ã‚«ãƒ¼ãƒ–
+// R - ãƒœãƒ¼ãƒ«ã‚¨ãƒ³ãƒ‰ãƒŸãƒ«åŠå¾„
+// N - ã‚¹ã‚­ãƒ£ãƒ‹ãƒ³ã‚°ãƒ©ã‚¤ãƒ³åˆ†å‰²æ•°(N < 100)
+// H - ç´ æä¸Šé¢ã®Zåº§æ¨™
+// D - Zæ–¹å‘åˆ†å‰²æ•°ï¼ˆç²—åŠ å·¥ç”¨ï¼‰
 void Smp3xCAM(NURBSS *S,NURBSC *C,double R,int N,double H,int D)
 {
-    NURBS_Func	nf;                 // NURBS_Func‚Ö‚ÌƒCƒ“ƒXƒ^ƒ“ƒX
-    double green[3] = {0,1,0};      // •`‰æ‚·‚éƒpƒX‚ÌFi—Îj
-    Coord plane_pt;                 // •ªŠ„‚·‚é•½–Êã‚Ì1“_
-    Coord plane_n;                  // •ªŠ„‚·‚é•½–Ê‚Ì–@üƒxƒNƒgƒ‹
-    Coord path_[2000];              // ˆêŽžŠi”[—pƒoƒbƒtƒ@
-    Coord ***path = NewCoord3(D+1,N+1,2000);    // ¶¬‚³‚ê‚½ƒpƒX‚ðŠi”[
-    int ptnum[100];                 // ƒXƒLƒƒƒ“ƒ‰ƒCƒ“1–{‚²‚Æ‚Ì‰ÁH“_”‚ðŠi”[
-    int flag = 0;                   // ƒWƒOƒUƒOƒpƒX¶¬Žž‚Ì•ûŒü“]Š·—pƒtƒ‰ƒO
+    NURBS_Func	nf;                 // NURBS_Funcã¸ã®ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹
+    double green[3] = {0,1,0};      // æç”»ã™ã‚‹ãƒ‘ã‚¹ã®è‰²ï¼ˆç·‘ï¼‰
+    Coord plane_pt;                 // åˆ†å‰²ã™ã‚‹å¹³é¢ä¸Šã®1ç‚¹
+    Coord plane_n;                  // åˆ†å‰²ã™ã‚‹å¹³é¢ã®æ³•ç·šãƒ™ã‚¯ãƒˆãƒ«
+    Coord path_[2000];              // ä¸€æ™‚æ ¼ç´ç”¨ãƒãƒƒãƒ•ã‚¡
+    Coord ***path = NewCoord3(D+1,N+1,2000);    // ç”Ÿæˆã•ã‚ŒãŸãƒ‘ã‚¹ã‚’æ ¼ç´
+    int ptnum[100];                 // ã‚¹ã‚­ãƒ£ãƒ³ãƒ©ã‚¤ãƒ³1æœ¬ã”ã¨ã®åŠ å·¥ç‚¹æ•°ã‚’æ ¼ç´
+    int flag = 0;                   // ã‚¸ã‚°ã‚¶ã‚°ãƒ‘ã‚¹ç”Ÿæˆæ™‚ã®æ–¹å‘è»¢æ›ç”¨ãƒ•ãƒ©ã‚°
 
-    // ƒKƒCƒhƒJ[ƒu‚É‰ˆ‚Á‚Ä‚’¼•½–Ê‚ðƒVƒtƒg‚µ‚Ä‚¢‚«C‰ÁH–Ê‚Æ‚ÌŒð“_ŒQ‚ð‹‚ß‚Ä‚¢‚­
+    // ã‚¬ã‚¤ãƒ‰ã‚«ãƒ¼ãƒ–ã«æ²¿ã£ã¦åž‚ç›´å¹³é¢ã‚’ã‚·ãƒ•ãƒˆã—ã¦ã„ãï¼ŒåŠ å·¥é¢ã¨ã®äº¤ç‚¹ç¾¤ã‚’æ±‚ã‚ã¦ã„ã
 	for(int i=0;i<=N;i++){
         double t = (double)i/(double)N;
-		if(i==0) t += 0.0001;		// “ÁˆÙ“_‰ñ”ð
-		else if(i==N) t-= 0.0001;	// “ÁˆÙ“_‰ñ”ð
-        plane_pt = nf.CalcNurbsCCoord(C,t);     // ’–Ú’†‚Ì‚’¼•½–Êã‚Ì1“_
-        plane_n = nf.CalcTanVecOnNurbsC(C,t);   // ’–Ú’†‚Ì‚’¼•½–Ê‚Ì–@üƒxƒNƒgƒ‹
-        ptnum[i] = nf.CalcIntersecPtsPlaneSearch(S,plane_pt,plane_n,0.5,3,path_,2000,RUNGE_KUTTA);  // Œð“_ŒQŽZo
-        // “¾‚ç‚ê‚½Œð“_ŒQ‚ðC‰ÁH–Ê–@ü•ûŒü‚ÉH‹ï”¼Œa•ªƒIƒtƒZƒbƒg‚³‚¹‚½“_‚ð“¾‚é
+		if(i==0) t += 0.0001;		// ç‰¹ç•°ç‚¹å›žé¿
+		else if(i==N) t-= 0.0001;	// ç‰¹ç•°ç‚¹å›žé¿
+        plane_pt = nf.CalcNurbsCCoord(C,t);     // æ³¨ç›®ä¸­ã®åž‚ç›´å¹³é¢ä¸Šã®1ç‚¹
+        plane_n = nf.CalcTanVecOnNurbsC(C,t);   // æ³¨ç›®ä¸­ã®åž‚ç›´å¹³é¢ã®æ³•ç·šãƒ™ã‚¯ãƒˆãƒ«
+        ptnum[i] = nf.CalcIntersecPtsPlaneSearch(S,plane_pt,plane_n,0.5,3,path_,2000,RUNGE_KUTTA);  // äº¤ç‚¹ç¾¤ç®—å‡º
+        // å¾—ã‚‰ã‚ŒãŸäº¤ç‚¹ç¾¤ã‚’ï¼ŒåŠ å·¥é¢æ³•ç·šæ–¹å‘ã«å·¥å…·åŠå¾„åˆ†ã‚ªãƒ•ã‚»ãƒƒãƒˆã•ã›ãŸç‚¹ã‚’å¾—ã‚‹
 		for(int j=0;j<ptnum[i];j++){
-            Coord pt = nf.CalcNurbsSCoord(S,path_[j].x,path_[j].y);     // H‹ïƒRƒ“ƒ^ƒNƒg“_
-            Coord n = nf.CalcNormVecOnNurbsS(S,path_[j].x,path_[j].y);  // –@üƒxƒNƒgƒ‹
-            if(n.z < 0)	n = n*(-1);         // –@üƒxƒNƒgƒ‹‚ÌŒü‚«’²®
-			path[D][i][j] = pt + n*R;		// H‹ï”¼ŒaƒIƒtƒZƒbƒg
+            Coord pt = nf.CalcNurbsSCoord(S,path_[j].x,path_[j].y);     // å·¥å…·ã‚³ãƒ³ã‚¿ã‚¯ãƒˆç‚¹
+            Coord n = nf.CalcNormVecOnNurbsS(S,path_[j].x,path_[j].y);  // æ³•ç·šãƒ™ã‚¯ãƒˆãƒ«
+            if(n.z < 0)	n = n*(-1);         // æ³•ç·šãƒ™ã‚¯ãƒˆãƒ«ã®å‘ãèª¿æ•´
+			path[D][i][j] = pt + n*R;		// å·¥å…·åŠå¾„ã‚ªãƒ•ã‚»ãƒƒãƒˆ
 		}
 	}
 
-	// ‘e‰ÁHƒpƒX¶¬
+	// ç²—åŠ å·¥ãƒ‘ã‚¹ç”Ÿæˆ
 	for(int i=0;i<D;i++){
 		for(int j=0;j<N+1;j++){
 			for(int k=0;k<ptnum[j];k++){
@@ -50,7 +50,7 @@ void Smp3xCAM(NURBSS *S,NURBSC *C,double R,int N,double H,int D)
 		}
 	}
 
-	// path•`‰æ
+	// pathæç”»
 	for(int i=0;i<D+1;i++){
 		for(int j=0;j<N+1;j++){
 			for(int k=0;k<ptnum[j];k++){
@@ -59,8 +59,8 @@ void Smp3xCAM(NURBSS *S,NURBSC *C,double R,int N,double H,int D)
 		}
 	}
 
-    // NCƒR[ƒh¶¬(ŠeðŒ‚ÍŠeŽ©‚Å•ÏX‚­‚¾‚³‚¢)
-	double ret = H + 10;		// ƒŠƒgƒ‰ƒNƒgZ
+    // NCã‚³ãƒ¼ãƒ‰ç”Ÿæˆ(å„æ¡ä»¶ã¯å„è‡ªã§å¤‰æ›´ãã ã•ã„)
+	double ret = H + 10;		// ãƒªãƒˆãƒ©ã‚¯ãƒˆZ
 	FILE *fp = fopen("demo.nc","w");
 	fprintf(fp,"G92X0.0Y0.0Z0.0\n");
 	fprintf(fp,"S4000M03\n");
