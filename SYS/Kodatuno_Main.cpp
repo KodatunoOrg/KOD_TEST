@@ -108,7 +108,6 @@ void KODatUNO::DeleteWin()
 
 	for(int i=0;i<bodynum;i++){
 		BODY *body = (BODY *)BodyList.getData(i);	// i番目のBODYを選択
-		body->DelBodyElem();						// BODY内で確保しているメモリーの解放
 		delete (BODY *)body;						// BODY自身のメモリー解放
 	}
 	BodyList.clear();		// BODYリスト自身も消去
@@ -266,12 +265,12 @@ void KODatUNO::DrawBODY()
 // *Curr_body - BODY構造体へのポインタ
 void KODatUNO::Draw_NurbsCurve(BODY *Curr_body)
 {
-	for(int i=0;i<Curr_body->TypeNum[_NURBSC];i++){
+    for(int i=0;i<Curr_body->m_NurbsC.size();i++){
 		glPushName(i);		// ネームスタックの先頭にiを挿入
-		glColor3f(Curr_body->NurbsC[i].Dstat.Color[0],Curr_body->NurbsC[i].Dstat.Color[1],Curr_body->NurbsC[i].Dstat.Color[2]);
+        glColor3f(Curr_body->m_NurbsC[i].m_Dstat.Color[0],Curr_body->m_NurbsC[i].m_Dstat.Color[1],Curr_body->m_NurbsC[i].m_Dstat.Color[2]);
         // IGESディレクトリ部の"Entity Use Flag"が0かつ，"Blank Status"が0の場合は実際のモデル要素として描画する
-        if(Curr_body->NurbsC[i].EntUseFlag == GEOMTRYELEM && Curr_body->NurbsC[i].BlankStat == DISPLAY){
-            DrawNurbsCurve(&Curr_body->NurbsC[i]);						// 描画
+        if(Curr_body->m_NurbsC[i].m_EntUseFlag == GEOMTRYELEM && Curr_body->m_NurbsC[i].m_BlankStat == DISPLAY){
+            DrawNurbsCurve(&Curr_body->m_NurbsC[i]);						// 描画
 		}
 		glPopName();		// ネームスタックの先頭を削除
 	}
@@ -284,12 +283,12 @@ void KODatUNO::Draw_NurbsCurve(BODY *Curr_body)
 // *Curr_body - BODY構造体へのポインタ
 void KODatUNO::Draw_NurbsSurface(BODY *Curr_body)
 {
-	for(int i=0;i<Curr_body->TypeNum[_NURBSS];i++){
-		if(Curr_body->NurbsS[i].TrmdSurfFlag == KOD_TRUE)	// トリム面としてNURBS曲面が登録されているなら
+    for(int i=0;i<Curr_body->m_NurbsS.size();i++){
+        if(Curr_body->m_NurbsS[i].m_TrmdSurfFlag == KOD_TRUE)	// トリム面としてNURBS曲面が登録されているなら
 			continue;		// 描画しない
 		else{
 			glPushName(i);
-            DrawNurbsSurfe(&Curr_body->NurbsS[i]);	// NURBS曲面描画
+            DrawNurbsSurfe(&Curr_body->m_NurbsS[i]);	// NURBS曲面描画
 			glPopName();
 		}
 	}
@@ -302,9 +301,9 @@ void KODatUNO::Draw_NurbsSurface(BODY *Curr_body)
 // *Curr_body - BODY構造体へのポインタ
 void KODatUNO::Draw_TrimSurfe(BODY *Curr_body)
 {
-	for(int i=0;i<Curr_body->TypeNum[_TRIMMED_SURFACE];i++){
+    for(int i=0;i<Curr_body->m_TrmS.size();i++){
 		glPushName(i);			// ネームスタックの先頭にiを挿入
-        DrawTrimdSurf(&Curr_body->TrmS[i]);
+        DrawTrimdSurf(&Curr_body->m_TrmS[i]);
 		glPopName();			// ネームスタックの先頭を削除
 	}
 }
@@ -316,8 +315,8 @@ void KODatUNO::Draw_TrimSurfe(BODY *Curr_body)
 // *body - 立体を構成するエンティティの集合オブジェクトのポイント
 void KODatUNO::Draw_Mesh(BODY *body)
 {
-	for(int i=0;i<body->TypeNum[_MESH];i++){
-		DrawMesh(body->Mesh,WireFlameViewFlag);
+    for(int i=0;i<body->m_Mesh.size();i++){
+        DrawMesh(&body->m_Mesh[i],WireFlameViewFlag);
 	}
 }
 
@@ -502,8 +501,8 @@ int KODatUNO::OpenFile()
 			return KOD_ERR;
 		}
 
-        body->Name = fname;                     // ファイル名をbody名として登録
-        body->Mom = BodyList.add(body);         // リストに読み込んだbodyを登録
+        body->m_Name = fname;                   // ファイル名をbody名として登録
+        body->m_Mom = BodyList.add(body);         // リストに読み込んだbodyを登録
 		GuiIF.AddBodyNameToWin(fname.c_str());	// Bodyリストウィンドウに新たに読み込んだBODY名を付加
 		GuiIF.SetMessage("Finished");
 	}
@@ -589,8 +588,7 @@ void KODatUNO::DeleteBody()
 	if(!SeldEntList.getNum() && Focus_Body == KOD_ERR)	return;			// セレクション,リストウィンドウ選択されていない場合は何もしない
 
 	int buf=KOD_ERR;
-	int delnum[BODYLISTMAX];
-	int delcount=0;
+	std::vector<int> vdelnum;
 	BODY *body;
 	OBJECT *obj;
 
@@ -608,15 +606,14 @@ void KODatUNO::DeleteBody()
 		obj = (OBJECT *)SeldEntList.getData(i);
 		if(buf != obj->Body){
 			buf = obj->Body;
-			delnum[delcount] = obj->Body;
-			delcount++;
+			vdelnum.push_back(obj->Body);
 		}
 	}
-	BubbleSort(delnum,delcount);
+	std::sort(vdelnum.begin(), vdelnum.end(), std::greater<int>());	// 降順
 
-	for(int i=delcount-1;i>=0;i--){
-		body = (BODY *)BodyList.getData(delnum[i]);
-		DeleteBodySub(body,delnum[i]);
+	for ( int i=0; i<vdelnum.size(); i++ ) {
+        body = (BODY *)BodyList.getData(vdelnum[i]);
+        DeleteBodySub(body,vdelnum[i]);
 	}
 
 	ClearSeldEntList();
@@ -635,12 +632,11 @@ void KODatUNO::DeleteBodySub(BODY *body,int n)
 	if (body == NULL) return;
 
 	char mes[256];
-	sprintf(mes,"%s was deleted.",body->Name);
+	sprintf(mes,"%s was deleted.",body->m_Name);
     GuiIF.SetMessage(mes);
 
     BodyList.delData(n);			// リストからはずす
     GuiIF.DelBodyFromWin(n);		// リストウィンドウからはずす
-	body->DelBodyElem();			// BODY内で確保しているメモリーの解放
 	delete (BODY *)body;			// BODY自身のメモリー解放
 }
 
@@ -681,8 +677,8 @@ void KODatUNO::SetModelScale()
 
 	for(int i=0;i<BodyList.getNum();i++){
 		body = (BODY *)BodyList.getData(i);
-		if(max < body->MaxCoord)
-			max = body->MaxCoord;
+		if(max < body->m_MaxCoord)
+			max = body->m_MaxCoord;
 	}
 	ModelScale = 1/max;						// 初期画面にオブジェクト全体が写るように描画スケールを調節
 	ModelScale1st = ModelScale;				// モデルスケールの初期値を覚えておく
@@ -699,15 +695,15 @@ void KODatUNO::SetMaxCoord()
 	for(int i=0;i<BodyList.getNum();i++){
 		body = (BODY *)BodyList.getData(i);
 		double max = 0;
-		for(int j=0;j<body->TypeNum[_NURBSS];j++){
-			for(int u=0;u<body->NurbsS[j].K[0];u++){
-				for(int v=0;v<body->NurbsS[j].K[1];v++){
-					double d = body->NurbsS[j].cp[u][v].CalcEuclid();
+		for(int j=0;j<body->m_NurbsS.size();j++){
+			for(int u=0;u<body->m_NurbsS[j].m_W.size1();u++){
+				for(int v=0;v<body->m_NurbsS[j].m_W.size2();v++){
+					double d = body->m_NurbsS[j].m_cp[u][v].CalcEuclid();
 					if(d > max)	max = d;
 				}
 			}
 		}
-		body->MaxCoord = max;
+		body->m_MaxCoord = max;
 	}
 }
 
@@ -1047,13 +1043,13 @@ void KODatUNO::SetNewObject(int BodyNum,int TypeNum,int NumNum)
 	BODY *body;
 	body = (BODY *)BodyList.getData(obj->Body);
 	if(obj->Type == _NURBSC){
-		body->ChangeStatColor(body->NurbsC[obj->Num].Dstat.Color,1,0.2,1,0.5);	// 選択済みを示すため色を変更
+		ChangeStatColor(body->m_NurbsC[obj->Num].m_Dstat.Color,1,0.2,1,0.5);	// 選択済みを示すため色を変更
 	}
 	else if(obj->Type == _TRIMMED_SURFACE || obj->Type == _NURBSS){
-		body->ChangeStatColor(body->NurbsS[obj->Num].Dstat.Color,0.3,0.1,0.2,0.5);	// 選択済みを示すため色を変更
+		ChangeStatColor(body->m_NurbsS[obj->Num].m_Dstat.Color,0.3,0.1,0.2,0.5);	// 選択済みを示すため色を変更
 	}
 	else if(obj->Type == _MESH){
-		HEface *f = body->Mesh->getIndexedFace(NumNum);
+		HEface *f = body->m_Mesh[0].getIndexedFace(NumNum);
 		SetColorStat(&f->Dstat,1,0.2,1,0.5);
 	}
 
@@ -1069,7 +1065,7 @@ void KODatUNO::SelectAll()
 	for(int i=0;i<BodyList.getNum();i++){					// 現在リストに登録されているBODYの数だけループ
 		if((body = (BODY *)BodyList.getData(i)) != NULL){	// i番目のリストに登録されているBODYのデータを取得
 			// NURBSCを選択済みにする操作
-			for(int j=0;j<body->TypeNum[_NURBSC];j++){
+			for(int j=0;j<body->m_NurbsC.size();j++){
 				// 現在注目中の要素が既に選択済みかを判別
 				bool flag = false;
 				for(int k=0;k<SeldEntList.getNum();k++){
@@ -1086,7 +1082,7 @@ void KODatUNO::SelectAll()
 			}
 
 			// _TRIMMED_SURFACEを選択済みにする操作
-			for(int j=0;j<body->TypeNum[_TRIMMED_SURFACE];j++){
+			for(int j=0;j<body->m_TrmS.size();j++){
 				// 現在注目中の要素が既に選択済みかを判別
 				bool flag = false;
 				for(int k=0;k<SeldEntList.getNum();k++){
@@ -1101,14 +1097,16 @@ void KODatUNO::SelectAll()
 					SetNewObject(i,_TRIMMED_SURFACE,j);
 			}
 			// _NURBSSを選択済みにする操作
-			for(int j=0;j<body->TypeNum[_NURBSS];j++){
+			for(int j=0;j<body->m_NurbsS.size();j++){
 				bool flag = false;
 				// トリムド曲面として選択済みの場合は何もしない
-				for(int k=0;k<body->TypeNum[_TRIMMED_SURFACE];k++){
-					if(body->TrmS[j].pts == &body->NurbsS[k]){
-						flag = true;
-						break;
-					}
+				for(int k=0;k<body->m_TrmS.size();k++){
+					// !!! m_ptsはポインタではなく実体を持つように変更したので，この技が使えない !!! K.Magara
+					// TRMS 側を元に戻すか？ 一旦保留
+//					if(body->m_TrmS[j].m_pts == &body->m_NurbsS[k]){
+//						flag = true;
+//						break;
+//					}
 				}
 				// トリムド曲面でない場合は，既に選択済みかを調べる
 				if(flag == false){
@@ -1125,10 +1123,10 @@ void KODatUNO::SelectAll()
 					SetNewObject(i,_NURBSS,j);
 			}
 			// _MESHを選択済みにする操作
-			if(body->TypeNum[_MESH]){
-				for(int j=0;j<body->Mesh->FaceNum;j++){
+			if(!body->m_Mesh.empty()){
+				for(int j=0;j<body->m_Mesh[0].FaceNum;j++){
 					bool flag = false;
-					int index = ((HEface *)body->Mesh->Face.getData(j))->index;
+					int index = ((HEface *)body->m_Mesh[0].Face.getData(j))->index;
 					for(int k=0;k<SeldEntList.getNum();k++){
 						obj_ = (OBJECT *)SeldEntList.getData(k);
 						if(obj_ != NULL && obj_->Body == i && obj_->Type == _MESH && obj_->Num == index){
@@ -1160,16 +1158,16 @@ void KODatUNO::SelectionCancel()
 		body = SearchBodyList(&BodyList,obj->Body);			// セレクションされているエンティティが属するBODY番号を調べる
 		if (body == NULL) continue;							// DeleteBodyで消去されていた場合
 		if(obj->Type == _NURBSC){
-			body->InitCurveColor(body->NurbsC[obj->Num].Dstat.Color);		// 選択解除を示すため色を元に戻す
+			InitCurveColor(body->m_NurbsC[obj->Num].m_Dstat.Color);		// 選択解除を示すため色を元に戻す
 		}
 		else if(obj->Type == _TRIMMED_SURFACE || obj->Type == _NURBSS){
-			body->InitSurfaceColor(body->NurbsS[obj->Num].Dstat.Color);		// 選択解除を示すため色を元に戻す
+			InitSurfaceColor(body->m_NurbsS[obj->Num].m_Dstat.Color);		// 選択解除を示すため色を元に戻す
 		}
 		else if(obj->Type == _MESH){
-			HEface *f = body->Mesh->getIndexedFace(obj->Num);
+			HEface *f = body->m_Mesh[0].getIndexedFace(obj->Num);
 			//HEface *f = (HEface *)body->Mesh->Face.getData(obj->Num);
 			if(f == NULL) continue;
-			body->InitSurfaceColor(f->Dstat.Color);	// 選択解除を示すため色を元に戻す
+			InitSurfaceColor(f->Dstat.Color);	// 選択解除を示すため色を元に戻す
 		}
 	}
 	ClearSeldEntList();				// セレクションリストをクリア
@@ -1190,25 +1188,26 @@ int KODatUNO::ObjSelect(GLuint SelectBuf[],int hits)
 {
 	int i;
 	int ZdepthMin=0;
-	double Zdepth[MAXSELECT];
-	double depthbuf[MAXSELECT];
+	std::vector<double> vZdepth;
+	double depthbuf;
 	double temp=0;
 
 	// ヒットした全てのオブジェクトのデプス値を得る
 	for(i=0;i<hits;i++){
-		Zdepth[i] = ((((double)SelectBuf[i*(3+SelectBuf[0])+1]/0xFFFFFFFF)+((double)SelectBuf[i*(3+SelectBuf[0])+2]/0xFFFFFFFF))/2.0);	// デプスバッファの最大値と最小値の中間の値
-		depthbuf[i] = Zdepth[i];				// デプス値のソート処理用のバッファを用意
+		vZdepth.push_back( ((((double)SelectBuf[i*(3+SelectBuf[0])+1]/0xFFFFFFFF)+((double)SelectBuf[i*(3+SelectBuf[0])+2]/0xFFFFFFFF))/2.0) );	// デプスバッファの最大値と最小値の中間の値
 	}
 	
 	// ヒットしたオブジェクトの中でデプス値が最小のものを求める
-	if(hits == 1)
+	if(hits == 1) {
 		ZdepthMin = 0;
-	else if(hits > 1)
-		BubbleSort(depthbuf,hits);		// バブルソートによりデプス値が最小のものを得る
-	
+	}
+	else if(hits > 1) {
+		depthbuf = *std::min_element(vZdepth.begin(), vZdepth.end());	// デプス値が最小のものを得る
+	}
+
 	// デプス値が最小のものが複数あった場合，面より線を優先的に選択する
 	for(i=0;i<hits;i++){
-		if(Zdepth[i] == depthbuf[0] && SelectBuf[i*(3+SelectBuf[0])+4] == _NURBSC){
+		if(vZdepth[i] == depthbuf && SelectBuf[i*(3+SelectBuf[0])+4] == _NURBSC){
 			ZdepthMin = i;
 			temp++;
 			break;
@@ -1218,7 +1217,7 @@ int KODatUNO::ObjSelect(GLuint SelectBuf[],int hits)
 	// ヒットした中に線がない場合
 	if(temp == 0){
 		for(i=0;i<hits;i++){
-			if(Zdepth[i] == depthbuf[0])
+			if(vZdepth[i] == depthbuf)
 				ZdepthMin = i;
 		}
 	}
@@ -1618,7 +1617,6 @@ void KODatUNO::UVWireView()
 	BODY *body;
 	OBJECT *obj;
 	NURBSS *NurbsS;
-	NURBS_Func NFunc;
 	Coord p;
 	glDisable(GL_LIGHTING);
 	glLineWidth(1);
@@ -1629,27 +1627,27 @@ void KODatUNO::UVWireView()
 		body = (BODY *)BodyList.getData(obj->Body);
 		if(obj->Type != _NURBSS && obj->Type != _TRIMMED_SURFACE)	continue;
 		int num;
-		if(body->NurbsS[0].TrmdSurfFlag == KOD_TRUE)
-			num = body->TypeNum[_TRIMMED_SURFACE];
+		if(body->m_NurbsS[0].m_TrmdSurfFlag == KOD_TRUE)
+			num = body->m_TrmS.size();
 		else
-			num = body->TypeNum[_NURBSS];
+			num = body->m_NurbsS.size();
 		for(int i=0;i<num;i++){
-			if(body->NurbsS[0].TrmdSurfFlag == KOD_TRUE)
-				NurbsS = body->TrmS[i].pts;
+			if(body->m_NurbsS[0].m_TrmdSurfFlag == KOD_TRUE)
+				NurbsS = &body->m_TrmS[i].m_pts;
 			else
-				NurbsS = &body->NurbsS[i];
-			double du = NurbsS->U[1] - NurbsS->U[0];
-			double dv = NurbsS->V[1] - NurbsS->V[0];
+				NurbsS = &body->m_NurbsS[i];
+			double du = NurbsS->m_U[1] - NurbsS->m_U[0];
+			double dv = NurbsS->m_V[1] - NurbsS->m_V[0];
 			for(int j=0;j<11;j++){
 				glBegin(GL_LINE_STRIP);
 				for(int k=0;k<51;k++){		// v方向パラメータライン描画
-					p = NFunc.CalcNurbsSCoord(NurbsS,0.1*(double)j*du,0.02*(double)k*dv);
+					p = NurbsS->CalcNurbsSCoord(0.1*(double)j*du,0.02*(double)k*dv);
 					glVertex3d(p.x,p.y,p.z);
 				}
 				glEnd();
 				glBegin(GL_LINE_STRIP);
 				for(int k=0;k<51;k++){		// u方向パラメータライン描画
-					p = NFunc.CalcNurbsSCoord(NurbsS,0.02*(double)k*du,0.1*(double)j*dv);
+					p = NurbsS->CalcNurbsSCoord(0.02*(double)k*du,0.1*(double)j*dv);
 					glVertex3d(p.x,p.y,p.z);
 				}
 				glEnd();
@@ -1714,7 +1712,6 @@ void KODatUNO::GetShiftBody(Coord d)
 
 	BODY *body;
 	OBJECT *obj;	
-	NURBS_Func NFunc;
 
 	obj = (OBJECT *)SeldEntList.getData(0);
 	body = (BODY *)BodyList.getData(obj->Body);
@@ -1736,7 +1733,6 @@ void KODatUNO::GetRotateBody(Coord ax,double d)
 
 	BODY *body;
 	OBJECT *obj;	
-	NURBS_Func NFunc;
 
 	obj = (OBJECT *)SeldEntList.getData(0);
 	body = (BODY *)BodyList.getData(obj->Body);
@@ -1753,7 +1749,6 @@ void KODatUNO::GetRotateBody(Coord ax,double d)
 // r - 各軸方向拡大率
 void KODatUNO::ExpandBody(Coord r)
 {
-	NURBS_Func NFunc;
 	OBJECT *obj;
 	BODY *body;
 
@@ -1774,7 +1769,6 @@ void KODatUNO::ExpandBody(Coord r)
 // Flag - 回転サーフェス(Flag = ROTSURF) or スイープサーフェス(Flag = SWEEPSURF)を指定する
 int KODatUNO::GenSurface(Coord Axis,double Prop,int Flag)
 {
-	NURBS_Func NFunc;
 	OBJECT *obj;
 	BODY *body,*newbody;
 
@@ -1783,33 +1777,26 @@ int KODatUNO::GenSurface(Coord Axis,double Prop,int Flag)
 		if(obj->Type == _NURBSC){													// エンティティがNURBS曲線なら
 			body = SearchBodyList(&BodyList,obj->Body);								// そのNURBS曲線が属しているBODYの実体を得る
 			newbody = new BODY;														// 新しく生成する回転サーフェス用のBODYをメモリー確保
-			newbody->NurbsS = (NURBSS *)malloc(sizeof(NURBSS));						// NURBS曲面を1つメモリー確保
+			NURBSS NurbsS;															// NURBS曲面を1つメモリー確保
 			if(Flag == ROTSURF){
-				if(NFunc.GenRotNurbsS(newbody->NurbsS,body->NurbsC[obj->Num],Axis,Prop) == KOD_ERR)	// 回転サーフェス生成
-					goto EXIT;
+				NurbsS = body->m_NurbsC[obj->Num].GenRotNurbsS(Axis,Prop);			// 回転サーフェス生成
 			}
 			else if(Flag == SWEEPSURF){
-				if(NFunc.GenSweepNurbsS(newbody->NurbsS,body->NurbsC[obj->Num],Axis,Prop) == KOD_ERR)	// スイープサーフェス生成
-					goto EXIT;
+				NurbsS = body->m_NurbsC[obj->Num].GenSweepNurbsS(Axis,Prop);		// スイープサーフェス生成
 			}
 
-			newbody->NurbsS[0].TrmdSurfFlag = KOD_FALSE;							// トリムのない単純なNURBS曲面であることを明示
-			newbody->TypeNum[_NURBSS] = 1;											// NURBS曲面の数1にする
-			newbody->ChangeStatColor(newbody->NurbsS[0].Dstat.Color,0.2,0.2,1.0,0.5);		// 青色
-			newbody->Mom = BodyList.add(newbody);									// リストにnewbodyを登録
+			NurbsS.m_TrmdSurfFlag = KOD_FALSE;										// トリムのない単純なNURBS曲面であることを明示
+			ChangeStatColor(NurbsS.m_Dstat.Color,0.2,0.2,1.0,0.5);					// 青色
+			newbody->m_NurbsS.push_back(NurbsS);
+			newbody->m_Mom = BodyList.add(newbody);									// リストにnewbodyを登録
             GuiIF.AddBodyNameToWin("NewBody");										// Bodyリストウィンドウにもnewbodyを登録
-            newbody->Name = "NewBody";                                              // とりあえずnewbodyの名前は"NewBody"としておく
+            newbody->m_Name = "NewBody";											// とりあえずnewbodyの名前は"NewBody"としておく
 		}
 	}
 	DrawBODYFlag = KOD_TRUE;				// BODY描画してもOKフラグON
 	ReDrawBODYFlag = KOD_FALSE;				// BODYのメモリリストを再取得
 
 	return KOD_TRUE;
-
-EXIT:
-	free(newbody->NurbsS);
-	delete newbody;
-	return KOD_ERR;
 }
 
 // Function: GenNurbsCurve
@@ -1830,7 +1817,6 @@ int KODatUNO::GenNurbsCurve(int Val,char *Fname,int M)
 		return KOD_ERR;
 	}
 
-	NURBS_Func NFunc;
 	FILE *fp;
 	char buf[256];
 	Coord pt[CTLPNUMMAX];
