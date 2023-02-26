@@ -205,9 +205,9 @@ int USER::ExecSampleFunc3(BODYList *BodyList,OBJECTList *ObjList,int PickCount)
         OBJECT *obj = (OBJECT *)ObjList->getData(i);			// 一番最初にセレクションされたエンティティの情報を得る
         BODY *body = (BODY *)BodyList->getData(obj->Body);		// 一番最初にセレクションされたBODYの実体を得る
         if(i==0)
-            S = body->TrmS[obj->Num].pts;
+            S = body->m_vTrmS[obj->Num]->m_pts;
         else if(i==1)
-            C = &body->NurbsC[obj->Num];
+            C = body->m_vNurbsC[obj->Num];
     }
 
     Smp3xCAM(S,C,UserStat.Prop[0],UserStat.Prop[1],UserStat.Prop[2],UserStat.Prop[3]);  // 経路生成
