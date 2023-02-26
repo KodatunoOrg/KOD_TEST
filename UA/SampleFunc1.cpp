@@ -82,27 +82,24 @@ int SmpDivCurves(BODYList *BodyList,OBJECTList *ObjList, int PickCount, double P
 {
 	if(!PickCount)	return KOD_ERR;		// セレクションされていなかったら、何もしない
 
-	NURBS_Func	nfunc;					// NURBSを扱う関数集を呼び出す
 	double green[3] = {0,1,0};			// 分割点表示の色(緑)
 
-    int divnum = (int)Prop[0];          	// ユーザーステータスのprop1を分割数として読み込み
-    Coord *div_pt = NewCoord1(divnum+2);	// 分割点の座標値を格納する変数の宣言とメモリー確保
+    int divnum = (int)Prop[0];         	// ユーザーステータスのprop1を分割数として読み込み
+	VCoord div_pt;						// 分割点の座標値を格納する変数の宣言とメモリー確保
 
 	// セレクションした数だけループ
 	for(int i=0;i<PickCount;i++){
 		OBJECT *obj = (OBJECT *)ObjList->getData(i);			// i番目にセレクションされたエンティティの情報を得る
 		BODY *body = (BODY *)BodyList->getData(obj->Body);		// i番目にセレクションされたBODYの実体を得る
 		if(obj->Type == _NURBSC){								// i番目にセレクションされたエンティティがNURBS曲線なら
-			int ptnum = nfunc.CalcDeltaPtsOnNurbsC(&body->NurbsC[obj->Num],divnum,div_pt);		// 分割点を求める
-            for(int j=0;j<ptnum;j++){
+			div_pt = body->m_vNurbsC[obj->Num]->CalcDeltaPtsOnNurbsC(divnum);		// 分割点を求める
+            for(int j=0;j<div_pt.size();j++){
                 DrawPoint(div_pt[j],1,3,green);					// 分割点を表示
                 double dist = div_pt[j].CalcDistance(div_pt[j+1]);
                 qDebug("%lf",dist);
 			}
 		}
 	}
-
-    FreeCoord1(div_pt);     // 確保メモリーの解放
 
 	return KOD_TRUE;
 }
@@ -122,7 +119,6 @@ int SmpNearestPt(BODYList *BodyList,OBJECTList *ObjList, int PickCount, double P
 {
 	if(!PickCount)	return KOD_ERR;		// セレクションされていなかったら、何もしない
 
-	NURBS_Func	nfunc;					// NURBSを扱う関数集を呼び出す
 	NURBSS *S;							// セレクションされた曲面へのポインタ
 	Coord Q,Q_;							// 最近傍点格納用
 	char mes[256];						// メッセージ出力用
@@ -137,13 +133,13 @@ int SmpNearestPt(BODYList *BodyList,OBJECTList *ObjList, int PickCount, double P
 	// KODATUNOでは，IGESファイル読み込みの段階で全ての面/線がNURBS曲面/曲線へとされるため，
 	// 次のような3つの条件分岐によって欲しい面を取り出すことができる
 	if(obj->Type == _TRIMMED_SURFACE){
-		S = body->TrmS[obj->Num].pts;	// トリム面の場合は，トリム前の元のNURBS曲面を取り出す
+		S = body->m_vTrmS[obj->Num]->m_pts;	// トリム面の場合は，トリム前の元のNURBS曲面を取り出す
 	}
 	else if(obj->Type == _NURBSS){
-		S = &body->NurbsS[obj->Num];	// ただのNURBS曲面の場合はそのままその曲面へのポインタを得る
+		S = body->m_vNurbsS[obj->Num];		// ただのNURBS曲面の場合はそのままその曲面へのポインタを得る
 	}
 	else{
-		return KOD_ERR;					// セレクションされた曲面がトリム面でもNURBS曲面でもでない場合は終了
+		return KOD_ERR;						// セレクションされた曲面がトリム面でもNURBS曲面でもでない場合は終了
 	}
 
 	// 任意の点を3つ用意
@@ -153,11 +149,13 @@ int SmpNearestPt(BODYList *BodyList,OBJECTList *ObjList, int PickCount, double P
 	P[2].SetCoord(0,100,-50);
 
 	// 近傍点を得る
+	boost::optional<Coord> r;
 	for(int i=0;i<3;i++){
 		DrawPoint(P[i],1,3,red);									// 任意点を描画
-        int flag = nfunc.CalcIntersecPtNurbsPt(S,P[i],3,5,&Q);  	// 最近傍点算出
-		if(flag == KOD_TRUE){										// 最近傍点が見つかったら
-			Q_ = nfunc.CalcNurbsSCoord(S,Q.x,Q.y);					// 実空間座標へ変換し保存
+        r = S->CalcIntersecPtNurbsPt(P[i],3,5);			 		 	// 最近傍点算出
+		if( r ){													// 最近傍点が見つかったら
+			Q = *r;
+			Q_ = S->CalcNurbsSCoord(Q.x,Q.y);					// 実空間座標へ変換し保存
 			DrawPoint(Q_,1,3,blue);									// 最近傍点を描画
 			DrawLine(Q_,P[i],1,green);								// 線分描画
 			sprintf(mes,"%d:True(%lf,%lf,%lf)",i,Q_.x,Q_.y,Q_.z);
@@ -187,7 +185,6 @@ int SmpUVDivLine(BODYList *BodyList,OBJECTList *ObjList, int PickCount, double P
 {
 	if(!PickCount)	return KOD_ERR;		// セレクションされていなかったら、何もしない
 
-	NURBS_Func	nfunc;					// NURBSを扱う関数集を呼び出す
 	double green[3] = {0,1,0};			// 点表示の色(緑)
 
 	OBJECT *obj = (OBJECT *)ObjList->getData(0);		// 一番最初にセレクションされたエンティティの情報を得る
@@ -196,17 +193,17 @@ int SmpUVDivLine(BODYList *BodyList,OBJECTList *ObjList, int PickCount, double P
 	// 本来であれば，Sample4に示した曲面のタイプによる条件分岐が必要であるが，これ以降のSampleではトリム面で決め打ちする
 	if(obj->Type != _TRIMMED_SURFACE)	return KOD_ERR;	
 
-	NURBSS *S = body->TrmS[obj->Num].pts;				// BODYからNURBS曲面を取り出す
+	NURBSS *S = body->m_vTrmS[obj->Num]->m_pts;			// BODYからNURBS曲面を取り出す
 
 	int u_divnum = (int)Prop[0];						// ユーザーステータスのprop1をu方向分割数として読み込み
 	int v_divnum = (int)Prop[1];						// ユーザーステータスのprop2をv方向分割数として読み込み
-	double u_val = (S->U[1] - S->U[0])/u_divnum;		// パラメトリック空間内でのu方向線分長を得る
-	double v_val = (S->V[1] - S->V[0])/v_divnum;		// パラメトリック空間内でのv方向線分長を得る
+	double u_val = (S->m_U[1] - S->m_U[0])/u_divnum;	// パラメトリック空間内でのu方向線分長を得る
+	double v_val = (S->m_V[1] - S->m_V[0])/v_divnum;	// パラメトリック空間内でのv方向線分長を得る
 
 	// u方向，v方向の各分割点における座標値を求める
 	for(int i=0;i<=u_divnum;i++){
 		for(int j=0;j<=v_divnum;j++){
-			Coord P = nfunc.CalcNurbsSCoord(S,S->U[0]+u_val*i,S->V[0]+v_val*j);	// 指定した(u,v)の座標値を求める
+			Coord P = S->CalcNurbsSCoord(S->m_U[0]+u_val*i,S->m_V[0]+v_val*j);	// 指定した(u,v)の座標値を求める
 			DrawPoint(P,1,3,green);						// 描画
 		}
 	}
