@@ -698,7 +698,7 @@ void KODatUNO::SetMaxCoord()
 		for(int j=0;j<body->m_vNurbsS.size();j++){
 			for(int u=0;u<body->m_vNurbsS[j]->m_W.size1();u++){
 				for(int v=0;v<body->m_vNurbsS[j]->m_W.size2();v++){
-					double d = body->m_vNurbsS[j]->m_cp[u][v].CalcEuclid();
+					double d = body->m_vNurbsS[j]->m_vvCp[u][v].CalcEuclid();
 					if(d > max)	max = d;
 				}
 			}
@@ -2055,14 +2055,14 @@ void KODatUNO::DescribeCP()
 		if(obj->Type == _NURBSS){
 			for(int i=0;i<body->m_vNurbsS[obj->Num]->m_W.size1();i++){
 				for(int j=0;j<body->m_vNurbsS[obj->Num]->m_W.size2();j++){
-					DrawPoint(body->m_vNurbsS[obj->Num]->m_cp[i][j],1,3,col);
+					DrawPoint(body->m_vNurbsS[obj->Num]->m_vvCp[i][j],1,3,col);
 				}
 			}
 		}
 		else if(obj->Type == _TRIMMED_SURFACE){
 			for(int i=0;i<body->m_vTrmS[obj->Num]->m_pts->m_W.size1();i++){
 				for(int j=0;j<body->m_vTrmS[obj->Num]->m_pts->m_W.size2();j++){
-					DrawPoint(body->m_vTrmS[obj->Num]->m_pts->m_cp[i][j],1,3,col);
+					DrawPoint(body->m_vTrmS[obj->Num]->m_pts->m_vvCp[i][j],1,3,col);
 				}
 			}
 		}
