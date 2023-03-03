@@ -6,7 +6,9 @@ QT += core gui opengl
 QT += widgets
 QT += openglwidgets
 
-CONFIG += c++17
+#CONFIG += c++17
+TARGET = KOD_TEST
+TEMPLATE = app
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -64,15 +66,15 @@ FORMS    += \
 RESOURCES += \
     GUI/icons.qrc
 
-TRANSLATIONS += \
-    KOD_TEST_ja_JP.ts
-CONFIG += lrelease
-CONFIG += embed_translations
+#TRANSLATIONS += \
+#    KOD_TEST_ja_JP.ts
+#CONFIG += lrelease
+#CONFIG += embed_translations
 
 # Default rules for deployment.
-qnx: target.path = /tmp/$${TARGET}/bin
-else: unix:!android: target.path = /opt/$${TARGET}/bin
-!isEmpty(target.path): INSTALLS += target
+#qnx: target.path = /tmp/$${TARGET}/bin
+#else: unix:!android: target.path = /opt/$${TARGET}/bin
+#!isEmpty(target.path): INSTALLS += target
 
 # libKernel は OpenGL の前に定義しないとリンクエラーになる
 LIBS += -L$$PWD/../Kernel/build/debug/ -llibKernel # 各自の環境に合わせて変更
