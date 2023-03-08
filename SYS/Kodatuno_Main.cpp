@@ -270,7 +270,7 @@ void KODatUNO::Draw_NurbsCurve(BODY *Curr_body)
         glColor3f(Curr_body->m_vNurbsC[i]->m_Dstat.Color[0],Curr_body->m_vNurbsC[i]->m_Dstat.Color[1],Curr_body->m_vNurbsC[i]->m_Dstat.Color[2]);
         // IGESディレクトリ部の"Entity Use Flag"が0かつ，"Blank Status"が0の場合は実際のモデル要素として描画する
         if(Curr_body->m_vNurbsC[i]->m_EntUseFlag == GEOMTRYELEM && Curr_body->m_vNurbsC[i]->m_BlankStat == DISPLAY){
-            DrawNurbsCurve(Curr_body->m_vNurbsC[i]);						// 描画
+            Curr_body->m_vNurbsC[i]->DrawNurbsCurve();			// 描画
 		}
 		glPopName();		// ネームスタックの先頭を削除
 	}
@@ -288,7 +288,7 @@ void KODatUNO::Draw_NurbsSurface(BODY *Curr_body)
 			continue;		// 描画しない
 		else{
 			glPushName(i);
-            DrawNurbsSurfe(Curr_body->m_vNurbsS[i]);	// NURBS曲面描画
+            Curr_body->m_vNurbsS[i]->DrawNurbsSurfe();	// NURBS曲面描画
 			glPopName();
 		}
 	}
@@ -303,7 +303,7 @@ void KODatUNO::Draw_TrimSurfe(BODY *Curr_body)
 {
     for(int i=0;i<Curr_body->m_vTrmS.size();i++){
 		glPushName(i);			// ネームスタックの先頭にiを挿入
-        DrawTrimdSurf(Curr_body->m_vTrmS[i]);
+        Curr_body->m_vTrmS[i]->DrawTrimdSurf();
 		glPopName();			// ネームスタックの先頭を削除
 	}
 }
@@ -316,7 +316,7 @@ void KODatUNO::Draw_TrimSurfe(BODY *Curr_body)
 void KODatUNO::Draw_Mesh(BODY *body)
 {
     for(int i=0;i<body->m_vMesh.size();i++){
-        DrawMesh(body->m_vMesh[i],WireFlameViewFlag);
+        body->m_vMesh[i]->DrawMesh(WireFlameViewFlag);
 	}
 }
 
@@ -2252,7 +2252,7 @@ void KODatUNO::DispUVinfo()
             CompC = boost::any_cast<COMPC*>(body->m_vTrmS[obj->Num]->m_pTO->pB);
             //fprintf(stderr,"Nuber of Outer Trim Curve : %d\n",CompC->N);	// debug
             for(int i=0;i<CompC->pDE.size();i++){
-                DrawNurbsCurve(boost::any_cast<NURBSC*>(CompC->pDE[i]));
+                boost::any_cast<NURBSC*>(CompC->pDE[i])->DrawNurbsCurve();
             }
 
             // 内周面上線
@@ -2261,7 +2261,7 @@ void KODatUNO::DispUVinfo()
                 CompC = boost::any_cast<COMPC*>(body->m_vTrmS[obj->Num]->m_pTI[i]->pB);
                 //fprintf(stderr,"Nuber of Inner Trim Curve : %d\n",CompC->N);	// debug
                 for(int j=0;j<CompC->pDE.size();j++){
-                    DrawNurbsCurve(boost::any_cast<NURBSC*>(CompC->pDE[j]));
+                    boost::any_cast<NURBSC*>(CompC->pDE[j])->DrawNurbsCurve();
                 }
             }
         }
