@@ -16,7 +16,8 @@ INCLUDEPATH += \
     SYS/ \
     UA/ \
     GUI/ \
-    $$PWD/../Kernel/include/ # 各自の環境に合わせて変更
+    $$PWD/../Kernel/include/ \ # 各自の環境に合わせて変更
+    ../boost
 
 SOURCES += \
     GUI/QtMain.cpp \
