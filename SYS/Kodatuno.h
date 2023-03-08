@@ -59,7 +59,7 @@
 
 // Class: KODatUNO
 // BODY関連関数を集めたクラスを継承
-class KODatUNO : public Describe_BODY		
+class KODatUNO
 {
 public:
 // Function: InitializeWin
