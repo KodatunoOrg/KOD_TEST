@@ -17,8 +17,8 @@ void Smp3xCAM(NURBSS *S,NURBSC *C,double R,int N,double H,int D)
     double green[3] = {0,1,0};      // 描画するパスの色（緑）
     Coord plane_pt;                 // 分割する平面上の1点
     Coord plane_n;                  // 分割する平面の法線ベクトル
-    Coord path_[2000];              // 一時格納用バッファ
-    Coord ***path = NewCoord3(D+1,N+1,2000);    // 生成されたパスを格納
+    ACoord path_(boost::extents[2000]);              // 一時格納用バッファ
+    AAACoord path(boost::extents[D+1][N+1][2000]);    // 生成されたパスを格納
     int ptnum[100];                 // スキャンライン1本ごとの加工点数を格納
     int flag = 0;                   // ジグザグパス生成時の方向転換用フラグ
 

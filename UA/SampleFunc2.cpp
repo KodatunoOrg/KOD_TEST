@@ -33,7 +33,7 @@ int SmpContourLine(BODYList *BodyList,OBJECTList *ObjList, int PickCount, double
 
 	NURBSS *S = body->TrmS[obj->Num].pts;				// BODYからNURBS曲面を取り出す
 
-	Coord t[5000];					// 解格用納
+	ACoord t(boost::extents[5000]);	// 解格用納
 	double red[3] = {1,0,0};		// 法線ベクトル表示の色
 	double blue[3] = {0,0,1};		// 点表示の色
 	char mes[256];					// メッセージ出力用
@@ -88,8 +88,8 @@ int SmpIntersectSurfs(BODYList *BodyList,OBJECTList *ObjList, int PickCount, dou
 	if(!PickCount)	return KOD_ERR;		// セレクションされていなかったら、何もしない
 
 	NURBS_Func nfunc;				// NURBS関連の関数を集めたクラスのオブジェクトを生成
-	Coord Rt[5000];					// NURBS曲面R(w,t)における解
-	Coord St[5000];					// NURBS曲面S(u,v)における解
+	ACoord Rt(boost::extents[5000]);	// NURBS曲面R(w,t)における解
+	ACoord St(boost::extents[5000]);	// NURBS曲面S(u,v)における解
 	double green[3] = {0,1,0};		// 点表示の色
 
 	double feed = Prop[0];			// 交点群の点間隔

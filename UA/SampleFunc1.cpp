@@ -86,7 +86,7 @@ int SmpDivCurves(BODYList *BodyList,OBJECTList *ObjList, int PickCount, double P
 	double green[3] = {0,1,0};			// 分割点表示の色(緑)
 
     int divnum = (int)Prop[0];          	// ユーザーステータスのprop1を分割数として読み込み
-    Coord *div_pt = NewCoord1(divnum+2);	// 分割点の座標値を格納する変数の宣言とメモリー確保
+    ACoord div_pt(boost::extents[divnum+2]);	// 分割点の座標値を格納する変数の宣言とメモリー確保
 
 	// セレクションした数だけループ
 	for(int i=0;i<PickCount;i++){
@@ -101,8 +101,6 @@ int SmpDivCurves(BODYList *BodyList,OBJECTList *ObjList, int PickCount, double P
 			}
 		}
 	}
-
-    FreeCoord1(div_pt);     // 確保メモリーの解放
 
 	return KOD_TRUE;
 }

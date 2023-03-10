@@ -1833,7 +1833,7 @@ int KODatUNO::GenNurbsCurve(int Val,char *Fname,int M)
 	NURBS_Func NFunc;
 	FILE *fp;
 	char buf[256];
-	Coord pt[CTLPNUMMAX];
+	ACoord pt(boost::extents[CTLPNUMMAX]);
 	int ptnum=0;
 	BODY *newbody;
 
@@ -1915,7 +1915,7 @@ int KODatUNO::GenNurbsSurface(int Val,char *Fname,int M)
 	NURBS_Func NFunc;
 	FILE *fp;
 	char buf[256];
-	Coord **pt;
+	AACoord pt;
 	int row,col;
 	int flag=KOD_FALSE;
 	int ptnum=0;
@@ -1933,10 +1933,7 @@ int KODatUNO::GenNurbsSurface(int Val,char *Fname,int M)
 		if(buf[0] == '#' || buf[0] == '\n')	continue;
 		if(!flag){
 			sscanf(buf,"%d,%d",&row,&col);
-			if((pt = NewCoord2(row,col)) == NULL){		// 点を格納する領域のメモリー確保
-                GuiIF.SetMessage("KODATUNO ERROR: fail to allocate memory");
-				return KOD_ERR;
-			}
+			pt.resize(boost::extents[row][col]);		// 点を格納する領域のメモリー確保
 			flag = KOD_TRUE;
 		}
 		else{
@@ -1950,7 +1947,6 @@ int KODatUNO::GenNurbsSurface(int Val,char *Fname,int M)
 			if(ptnum > PTNUMMAX){
 				sprintf(buf,"KODATUNO ERROR: Too many points (%d).  Reduce point number to %d or fewer.",ptnum,PTNUMMAX);
                 GuiIF.SetMessage(buf);
-				FreeCoord2(pt,col);
 				return KOD_ERR;
 			}
 		}
@@ -1989,11 +1985,9 @@ int KODatUNO::GenNurbsSurface(int Val,char *Fname,int M)
 	SetMaxCoord();			// 作成したBODYの最大Coord値を調べる
 	SetModelScale();		// モデルスケールを最適化
 
-	FreeCoord2(pt,row);
 	return KOD_TRUE;
 
 EXIT:
-	FreeCoord2(pt,row);
 	return KOD_ERR;
 }
 
@@ -2368,20 +2362,13 @@ void KODatUNO::ChangeRank(int Newrank[2])
 		ns->N[1] = ns->K[1] + ns->M[1];
 
 		// Newrankがoldrankよりも大きい場合はノットベクトル配列を再確保
-		double *tmp1,*tmp2;
 		bool flag = false;
 		if(Newrank[0] > oldrank[0]){
-			if((tmp1 = (double *)realloc(ns->S,sizeof(double)*ns->N[0])) == NULL){
-				goto EXIT;
-			}
-			ns->S = tmp1;
+			ns->S.resize(ns->N[0]);
 			flag = true;
 		}
 		if(Newrank[1] > oldrank[1]){
-			if((tmp2 = (double *)realloc(ns->T,sizeof(double)*ns->N[1])) == NULL){
-				goto EXIT;
-			}
-			ns->T = tmp2;
+			ns->T.resize(ns->N[1]);
 			flag = true;
 		}
 
