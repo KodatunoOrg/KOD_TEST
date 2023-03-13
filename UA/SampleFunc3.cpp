@@ -17,7 +17,6 @@ void Smp3xCAM(NURBSS *S,NURBSC *C,double R,int N,double H,int D)
     double green[3] = {0,1,0};      // 描画するパスの色（緑）
     Coord plane_pt;                 // 分割する平面上の1点
     Coord plane_n;                  // 分割する平面の法線ベクトル
-    ACoord path_(boost::extents[2000]);              // 一時格納用バッファ
     AAACoord path(boost::extents[D+1][N+1][2000]);    // 生成されたパスを格納
     int ptnum[100];                 // スキャンライン1本ごとの加工点数を格納
     int flag = 0;                   // ジグザグパス生成時の方向転換用フラグ
@@ -29,7 +28,8 @@ void Smp3xCAM(NURBSS *S,NURBSC *C,double R,int N,double H,int D)
 		else if(i==N) t-= 0.0001;	// 特異点回避
         plane_pt = nf.CalcNurbsCCoord(C,t);     // 注目中の垂直平面上の1点
         plane_n = nf.CalcTanVecOnNurbsC(C,t);   // 注目中の垂直平面の法線ベクトル
-        ptnum[i] = nf.CalcIntersecPtsPlaneSearch(S,plane_pt,plane_n,0.5,3,path_,2000,RUNGE_KUTTA);  // 交点群算出
+        VCoord path_ = nf.CalcIntersecPtsPlaneSearch(S,plane_pt,plane_n,0.5,3,RUNGE_KUTTA);  // 交点群算出
+		ptnum[i] = path_.size();
         // 得られた交点群を，加工面法線方向に工具半径分オフセットさせた点を得る
 		for(int j=0;j<ptnum[i];j++){
             Coord pt = nf.CalcNurbsSCoord(S,path_[j].x,path_[j].y);     // 工具コンタクト点

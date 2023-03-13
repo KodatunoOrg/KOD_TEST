@@ -33,7 +33,6 @@ int SmpContourLine(BODYList *BodyList,OBJECTList *ObjList, int PickCount, double
 
 	NURBSS *S = body->TrmS[obj->Num].pts;				// BODYからNURBS曲面を取り出す
 
-	ACoord t(boost::extents[5000]);	// 解格用納
 	double red[3] = {1,0,0};		// 法線ベクトル表示の色
 	double blue[3] = {0,0,1};		// 点表示の色
 	char mes[256];					// メッセージ出力用
@@ -54,9 +53,9 @@ int SmpContourLine(BODYList *BodyList,OBJECTList *ObjList, int PickCount, double
 		sprintf(mes,"z=%.3lf  calculating...",z);
 		GuiIF.SetMessage(mes);
 
-		int num = nfunc.CalcIntersecPtsPlaneSearch(S,pt,nvec,feed,5,t,5000,RUNGE_KUTTA);		// NURBS曲面と平面との交点群を交線追跡法で求める
+		VCoord t = nfunc.CalcIntersecPtsPlaneSearch(S,pt,nvec,feed,5,RUNGE_KUTTA);		// NURBS曲面と平面との交点群を交線追跡法で求める
 
-		for(int i=0;i<num;i++){		// 交点の数だけループ
+		for(int i=0;i<t.size();i++){		// 交点の数だけループ
 			Coord p = nfunc.CalcNurbsSCoord(S,t[i].x,t[i].y);			// 交点をパラメータ値から座標値へ変換
 			Coord nt = nfunc.CalcNormVecOnNurbsS(S,t[i].x,t[i].y);		// 交点上の法線ベクトルを計算
 			nt = nt*(-2);												// 外向き法線ベクトルへ変換し適当な長さにする
