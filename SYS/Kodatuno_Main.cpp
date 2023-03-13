@@ -1,5 +1,6 @@
 ﻿#include "StdAfxQt.h"
 #include "Kodatuno.h"
+#include <algorithm>	// sort
 
 // Function: InitializeWin
 // ユーザーが独自に作成した関数とUserボタンとの関連付け及び，Userステータスの初期化を行う
@@ -612,7 +613,7 @@ void KODatUNO::DeleteBody()
 			delcount++;
 		}
 	}
-	BubbleSort(delnum,delcount);
+	std::sort(std::begin(delnum), std::begin(delnum)+delcount);		// BubbleSort(delnum,delcount);
 
 	for(int i=delcount-1;i>=0;i--){
 		body = (BODY *)BodyList.getData(delnum[i]);
@@ -1192,6 +1193,7 @@ int KODatUNO::ObjSelect(GLuint SelectBuf[],int hits)
 	int ZdepthMin=0;
 	double Zdepth[MAXSELECT];
 	double depthbuf[MAXSELECT];
+	double min_depth = 0;
 	double temp=0;
 
 	// ヒットした全てのオブジェクトのデプス値を得る
@@ -1204,11 +1206,11 @@ int KODatUNO::ObjSelect(GLuint SelectBuf[],int hits)
 	if(hits == 1)
 		ZdepthMin = 0;
 	else if(hits > 1)
-		BubbleSort(depthbuf,hits);		// バブルソートによりデプス値が最小のものを得る
+		min_depth = *std::min_element(std::begin(depthbuf), std::begin(depthbuf)+hits);		// デプス値が最小のものを得る
 	
 	// デプス値が最小のものが複数あった場合，面より線を優先的に選択する
 	for(i=0;i<hits;i++){
-		if(Zdepth[i] == depthbuf[0] && SelectBuf[i*(3+SelectBuf[0])+4] == _NURBSC){
+		if(Zdepth[i] == min_depth && SelectBuf[i*(3+SelectBuf[0])+4] == _NURBSC){
 			ZdepthMin = i;
 			temp++;
 			break;
@@ -1218,7 +1220,7 @@ int KODatUNO::ObjSelect(GLuint SelectBuf[],int hits)
 	// ヒットした中に線がない場合
 	if(temp == 0){
 		for(i=0;i<hits;i++){
-			if(Zdepth[i] == depthbuf[0])
+			if(Zdepth[i] == min_depth)
 				ZdepthMin = i;
 		}
 	}
