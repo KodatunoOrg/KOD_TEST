@@ -207,7 +207,7 @@ int USER::ExecSampleFunc3(BODYList *BodyList,OBJECTList *ObjList,int PickCount)
         if(i==0)
             S = body->TrmS[obj->Num].pts;
         else if(i==1)
-            C = &body->NurbsC[obj->Num];
+            C = body->vNurbsC[obj->Num];
     }
 
     Smp3xCAM(S,C,UserStat.Prop[0],UserStat.Prop[1],UserStat.Prop[2],UserStat.Prop[3]);  // 経路生成

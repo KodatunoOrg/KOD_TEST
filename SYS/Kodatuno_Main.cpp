@@ -1,6 +1,7 @@
 ﻿#include "StdAfxQt.h"
 #include "Kodatuno.h"
 #include <algorithm>	// sort
+#include "boost/foreach.hpp"
 
 // Function: InitializeWin
 // ユーザーが独自に作成した関数とUserボタンとの関連付け及び，Userステータスの初期化を行う
@@ -267,12 +268,13 @@ void KODatUNO::DrawBODY()
 // *Curr_body - BODY構造体へのポインタ
 void KODatUNO::Draw_NurbsCurve(BODY *Curr_body)
 {
-	for(int i=0;i<Curr_body->TypeNum[_NURBSC];i++){
+	for(int i=0;i<Curr_body->vNurbsC.size();i++){
+		NURBSC* n = Curr_body->vNurbsC[i];
 		glPushName(i);		// ネームスタックの先頭にiを挿入
-		glColor3f(Curr_body->NurbsC[i].Dstat.Color[0],Curr_body->NurbsC[i].Dstat.Color[1],Curr_body->NurbsC[i].Dstat.Color[2]);
+		glColor3f(n->Dstat.Color[0], n->Dstat.Color[1], n->Dstat.Color[2]);
         // IGESディレクトリ部の"Entity Use Flag"が0かつ，"Blank Status"が0の場合は実際のモデル要素として描画する
-        if(Curr_body->NurbsC[i].EntUseFlag == GEOMTRYELEM && Curr_body->NurbsC[i].BlankStat == DISPLAY){
-            DrawNurbsCurve(&Curr_body->NurbsC[i]);						// 描画
+        if( n->EntUseFlag == GEOMTRYELEM && n->BlankStat == DISPLAY){
+            DrawNurbsCurve(n);						// 描画
 		}
 		glPopName();		// ネームスタックの先頭を削除
 	}
@@ -1048,7 +1050,7 @@ void KODatUNO::SetNewObject(int BodyNum,int TypeNum,int NumNum)
 	BODY *body;
 	body = (BODY *)BodyList.getData(obj->Body);
 	if(obj->Type == _NURBSC){
-		body->ChangeStatColor(body->NurbsC[obj->Num].Dstat.Color,1,0.2,1,0.5);	// 選択済みを示すため色を変更
+		body->ChangeStatColor(body->vNurbsC[obj->Num]->Dstat.Color,1,0.2,1,0.5);	// 選択済みを示すため色を変更
 	}
 	else if(obj->Type == _TRIMMED_SURFACE || obj->Type == _NURBSS){
 		body->ChangeStatColor(body->NurbsS[obj->Num].Dstat.Color,0.3,0.1,0.2,0.5);	// 選択済みを示すため色を変更
@@ -1161,7 +1163,7 @@ void KODatUNO::SelectionCancel()
 		body = SearchBodyList(&BodyList,obj->Body);			// セレクションされているエンティティが属するBODY番号を調べる
 		if (body == NULL) continue;							// DeleteBodyで消去されていた場合
 		if(obj->Type == _NURBSC){
-			body->InitCurveColor(body->NurbsC[obj->Num].Dstat.Color);		// 選択解除を示すため色を元に戻す
+			body->InitCurveColor(body->vNurbsC[obj->Num]->Dstat.Color);		// 選択解除を示すため色を元に戻す
 		}
 		else if(obj->Type == _TRIMMED_SURFACE || obj->Type == _NURBSS){
 			body->InitSurfaceColor(body->NurbsS[obj->Num].Dstat.Color);		// 選択解除を示すため色を元に戻す
@@ -1787,11 +1789,11 @@ int KODatUNO::GenSurface(Coord Axis,double Prop,int Flag)
 			newbody = new BODY;														// 新しく生成する回転サーフェス用のBODYをメモリー確保
 			newbody->NurbsS = (NURBSS *)malloc(sizeof(NURBSS));						// NURBS曲面を1つメモリー確保
 			if(Flag == ROTSURF){
-				if(NFunc.GenRotNurbsS(newbody->NurbsS,body->NurbsC[obj->Num],Axis,Prop) == KOD_ERR)	// 回転サーフェス生成
+				if(NFunc.GenRotNurbsS(newbody->NurbsS,body->vNurbsC[obj->Num],Axis,Prop) == KOD_ERR)	// 回転サーフェス生成
 					goto EXIT;
 			}
 			else if(Flag == SWEEPSURF){
-				if(NFunc.GenSweepNurbsS(newbody->NurbsS,body->NurbsC[obj->Num],Axis,Prop) == KOD_ERR)	// スイープサーフェス生成
+				if(NFunc.GenSweepNurbsS(newbody->NurbsS,body->vNurbsC[obj->Num],Axis,Prop) == KOD_ERR)	// スイープサーフェス生成
 					goto EXIT;
 			}
 
@@ -1857,26 +1859,26 @@ int KODatUNO::GenNurbsCurve(int Val,char *Fname,int M)
 	fclose(fp);
 
 	// NURBS曲線生成
-	NURBSC nurb;
+	NURBSC* nurb;
 	switch(Val){
 		case 1:
-			NFunc.GenPolygonalLine(&nurb,pt,ptnum);	// 折れ線
+			nurb = NFunc.GenPolygonalLine(pt);	// 折れ線
 			break;
 		case 2:
-			if(NFunc.GenInterpolatedNurbsC1(&nurb,pt,ptnum,M) != KOD_TRUE)	// 点列補間NURBS曲線
-				goto EXIT;
+			nurb = NFunc.GenInterpolatedNurbsC1(pt,M);	// 点列補間NURBS曲線
+			if( !nurb ) goto EXIT;
 			break;
 		case 3:
-			if(NFunc.GenApproximationNurbsC(&nurb,pt,ptnum,M) != KOD_TRUE)	// 点列近似NURBS曲線
-				goto EXIT;
+			nurb = NFunc.GenApproximationNurbsC(pt,M);	// 点列近似NURBS曲線
+			if( !nurb ) goto EXIT;
 			break;
 		case 4:
-			if(NFunc.GenInterpolatedNurbsC2(&nurb,pt,ptnum,M) != KOD_TRUE)	// 点列補間NURBS曲線
-				goto EXIT;
+			nurb = NFunc.GenInterpolatedNurbsC2(pt,M);	// 点列補間NURBS曲線
+			if( !nurb ) goto EXIT;
 			break;			
 		case 5:
-			if(NFunc.GenNurbsCfromCP(&nurb,pt,ptnum,M) != KOD_TRUE)				// コントロールポイントからNURBS曲線を生成
-				goto EXIT;
+			nurb = NFunc.GenNurbsCfromCP(pt,M);			// コントロールポイントからNURBS曲線を生成
+			if ( !nurb ) goto EXIT;
 			break;
 		default:
 			goto EXIT;
@@ -2374,8 +2376,8 @@ void KODatUNO::ChangeRank(int Newrank[2])
 			flag = true;
 		}
 
-		NFunc.GetEqIntervalKont(ns->K[0],ns->M[0],ns->S);	// ノットベクトルを再設定
-		NFunc.GetEqIntervalKont(ns->K[1],ns->M[1],ns->T);
+		ns->S = NFunc.GetEqIntervalKont(ns->K[0],ns->M[0]);	// ノットベクトルを再設定
+		ns->T = NFunc.GetEqIntervalKont(ns->K[1],ns->M[1]);
 		ns->U[0] = ns->V[0] = 0;		// ノットベクトルの範囲を指定
 		ns->U[1] = ns->V[1] = NORM_KNOT_VAL;		
 	}

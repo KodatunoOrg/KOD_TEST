@@ -93,7 +93,7 @@ int SmpDivCurves(BODYList *BodyList,OBJECTList *ObjList, int PickCount, double P
 		OBJECT *obj = (OBJECT *)ObjList->getData(i);			// i番目にセレクションされたエンティティの情報を得る
 		BODY *body = (BODY *)BodyList->getData(obj->Body);		// i番目にセレクションされたBODYの実体を得る
 		if(obj->Type == _NURBSC){								// i番目にセレクションされたエンティティがNURBS曲線なら
-			int ptnum = nfunc.CalcDeltaPtsOnNurbsC(&body->NurbsC[obj->Num],divnum,div_pt);		// 分割点を求める
+			int ptnum = nfunc.CalcDeltaPtsOnNurbsC(body->vNurbsC[obj->Num],divnum,div_pt);		// 分割点を求める
             for(int j=0;j<ptnum;j++){
                 DrawPoint(div_pt[j],1,3,green);					// 分割点を表示
                 double dist = div_pt[j].CalcDistance(div_pt[j+1]);
