@@ -287,12 +287,12 @@ void KODatUNO::Draw_NurbsCurve(BODY *Curr_body)
 // *Curr_body - BODY構造体へのポインタ
 void KODatUNO::Draw_NurbsSurface(BODY *Curr_body)
 {
-	for(int i=0;i<Curr_body->TypeNum[_NURBSS];i++){
-		if(Curr_body->NurbsS[i].TrmdSurfFlag == KOD_TRUE)	// トリム面としてNURBS曲面が登録されているなら
+	for(int i=0;i<Curr_body->vNurbsS.size();i++){
+		if(Curr_body->vNurbsS[i]->TrmdSurfFlag == KOD_TRUE)	// トリム面としてNURBS曲面が登録されているなら
 			continue;		// 描画しない
 		else{
 			glPushName(i);
-            DrawNurbsSurfe(&Curr_body->NurbsS[i]);	// NURBS曲面描画
+            DrawNurbsSurfe(Curr_body->vNurbsS[i]);	// NURBS曲面描画
 			glPopName();
 		}
 	}
@@ -702,10 +702,11 @@ void KODatUNO::SetMaxCoord()
 	for(int i=0;i<BodyList.getNum();i++){
 		body = (BODY *)BodyList.getData(i);
 		double max = 0;
-		for(int j=0;j<body->TypeNum[_NURBSS];j++){
-			for(int u=0;u<body->NurbsS[j].K[0];u++){
-				for(int v=0;v<body->NurbsS[j].K[1];v++){
-					double d = body->NurbsS[j].cp[u][v].CalcEuclid();
+		for(int j=0;j<body->vNurbsS.size();j++){
+			NURBSS* nurbs = body->vNurbsS[j];
+			for(int u=0;u<nurbs->K[0];u++){
+				for(int v=0;v<nurbs->K[1];v++){
+					double d = nurbs->cp[u][v].CalcEuclid();
 					if(d > max)	max = d;
 				}
 			}
@@ -1053,7 +1054,7 @@ void KODatUNO::SetNewObject(int BodyNum,int TypeNum,int NumNum)
 		body->ChangeStatColor(body->vNurbsC[obj->Num]->Dstat.Color,1,0.2,1,0.5);	// 選択済みを示すため色を変更
 	}
 	else if(obj->Type == _TRIMMED_SURFACE || obj->Type == _NURBSS){
-		body->ChangeStatColor(body->NurbsS[obj->Num].Dstat.Color,0.3,0.1,0.2,0.5);	// 選択済みを示すため色を変更
+		body->ChangeStatColor(body->vNurbsS[obj->Num]->Dstat.Color,0.3,0.1,0.2,0.5);	// 選択済みを示すため色を変更
 	}
 	else if(obj->Type == _MESH){
 		HEface *f = body->Mesh->getIndexedFace(NumNum);
@@ -1108,7 +1109,7 @@ void KODatUNO::SelectAll()
 				bool flag = false;
 				// トリムド曲面として選択済みの場合は何もしない
 				for(int k=0;k<body->TypeNum[_TRIMMED_SURFACE];k++){
-					if(body->TrmS[j].pts == &body->NurbsS[k]){
+					if(body->TrmS[j].pts == body->vNurbsS[k]){		// このイコールはたぶん無理 K.Magara
 						flag = true;
 						break;
 					}
@@ -1166,7 +1167,7 @@ void KODatUNO::SelectionCancel()
 			body->InitCurveColor(body->vNurbsC[obj->Num]->Dstat.Color);		// 選択解除を示すため色を元に戻す
 		}
 		else if(obj->Type == _TRIMMED_SURFACE || obj->Type == _NURBSS){
-			body->InitSurfaceColor(body->NurbsS[obj->Num].Dstat.Color);		// 選択解除を示すため色を元に戻す
+			body->InitSurfaceColor(body->vNurbsS[obj->Num]->Dstat.Color);		// 選択解除を示すため色を元に戻す
 		}
 		else if(obj->Type == _MESH){
 			HEface *f = body->Mesh->getIndexedFace(obj->Num);
@@ -1633,15 +1634,15 @@ void KODatUNO::UVWireView()
 		body = (BODY *)BodyList.getData(obj->Body);
 		if(obj->Type != _NURBSS && obj->Type != _TRIMMED_SURFACE)	continue;
 		int num;
-		if(body->NurbsS[0].TrmdSurfFlag == KOD_TRUE)
+		if(body->vNurbsS[0]->TrmdSurfFlag == KOD_TRUE)
 			num = body->TypeNum[_TRIMMED_SURFACE];
 		else
 			num = body->TypeNum[_NURBSS];
 		for(int i=0;i<num;i++){
-			if(body->NurbsS[0].TrmdSurfFlag == KOD_TRUE)
+			if(body->vNurbsS[0]->TrmdSurfFlag == KOD_TRUE)
 				NurbsS = body->TrmS[i].pts;
 			else
-				NurbsS = &body->NurbsS[i];
+				NurbsS = body->vNurbsS[i];
 			double du = NurbsS->U[1] - NurbsS->U[0];
 			double dv = NurbsS->V[1] - NurbsS->V[0];
 			for(int j=0;j<11;j++){
@@ -1781,25 +1782,24 @@ int KODatUNO::GenSurface(Coord Axis,double Prop,int Flag)
 	NURBS_Func NFunc;
 	OBJECT *obj;
 	BODY *body,*newbody;
+	NURBSS* nurbs = NULL;
 
 	for(int i=0;i<SeldEntList.getNum();i++){										// セレクションされている全てのエンティティに対して
 		obj = (OBJECT *)SeldEntList.getData(i);										// そのセレクションされているエンティティ情報を得る
 		if(obj->Type == _NURBSC){													// エンティティがNURBS曲線なら
 			body = SearchBodyList(&BodyList,obj->Body);								// そのNURBS曲線が属しているBODYの実体を得る
 			newbody = new BODY;														// 新しく生成する回転サーフェス用のBODYをメモリー確保
-			newbody->NurbsS = (NURBSS *)malloc(sizeof(NURBSS));						// NURBS曲面を1つメモリー確保
 			if(Flag == ROTSURF){
-				if(NFunc.GenRotNurbsS(newbody->NurbsS,body->vNurbsC[obj->Num],Axis,Prop) == KOD_ERR)	// 回転サーフェス生成
-					goto EXIT;
+				nurbs = NFunc.GenRotNurbsS(body->vNurbsC[obj->Num],Axis,Prop);		// 回転サーフェス生成
+				if ( !nurbs ) goto EXIT;
 			}
 			else if(Flag == SWEEPSURF){
-				if(NFunc.GenSweepNurbsS(newbody->NurbsS,body->vNurbsC[obj->Num],Axis,Prop) == KOD_ERR)	// スイープサーフェス生成
-					goto EXIT;
+				nurbs = NFunc.GenSweepNurbsS(body->vNurbsC[obj->Num],Axis,Prop);	// スイープサーフェス生成
+				if ( !nurbs ) goto EXIT;
 			}
-
-			newbody->NurbsS[0].TrmdSurfFlag = KOD_FALSE;							// トリムのない単純なNURBS曲面であることを明示
-			newbody->TypeNum[_NURBSS] = 1;											// NURBS曲面の数1にする
-			newbody->ChangeStatColor(newbody->NurbsS[0].Dstat.Color,0.2,0.2,1.0,0.5);		// 青色
+			nurbs->TrmdSurfFlag = KOD_FALSE;										// トリムのない単純なNURBS曲面であることを明示
+			newbody->ChangeStatColor(nurbs->Dstat.Color,0.2,0.2,1.0,0.5);			// 青色
+			newbody->vNurbsS.push_back(nurbs);
 			newbody->Mom = BodyList.add(newbody);									// リストにnewbodyを登録
             GuiIF.AddBodyNameToWin("NewBody");										// Bodyリストウィンドウにもnewbodyを登録
             newbody->Name = "NewBody";                                              // とりあえずnewbodyの名前は"NewBody"としておく
@@ -1811,7 +1811,6 @@ int KODatUNO::GenSurface(Coord Axis,double Prop,int Flag)
 	return KOD_TRUE;
 
 EXIT:
-	free(newbody->NurbsS);
 	delete newbody;
 	return KOD_ERR;
 }
@@ -1958,22 +1957,22 @@ int KODatUNO::GenNurbsSurface(int Val,char *Fname,int M)
 	fclose(fp);
 
 	// NURBS曲面生成
-	NURBSS nurb;
+	NURBSS* nurb;
 	switch(Val){
 		case 1:
-			NFunc.GenPolygonalSurface(&nurb,pt,row,col);	// 折れ面
+			nurb = NFunc.GenPolygonalSurface(pt,row,col);	// 折れ面
 			break;
 		case 2:
-			if(NFunc.GenInterpolatedNurbsS1(&nurb,pt,row,col,M,M) == KOD_ERR)	// 点列補間NURBS曲面
-				goto EXIT;
+			nurb = NFunc.GenInterpolatedNurbsS1(pt,row,col,M,M);	// 点列補間NURBS曲面
+			if ( !nurb ) goto EXIT;
 			break;
 		case 3:
-			if(NFunc.GenApproximationNurbsS(&nurb,pt,row,col,M,M) == KOD_ERR)	// 点列補間NURBS曲面
-				goto EXIT;
+			nurb = NFunc.GenApproximationNurbsS(pt,row,col,M,M);	// 点列補間NURBS曲面
+			if ( !nurb ) goto EXIT;
 			break;
 		case 5:
-			if(NFunc.GenNurbsSfromCP(&nurb,pt,row,col,M,M) == KOD_ERR)	// コントロールポイントからNURBS曲面を生成
-				goto EXIT;
+			nurb = NFunc.GenNurbsSfromCP(pt,row,col,M,M);			// コントロールポイントからNURBS曲面を生成
+			if ( !nurb ) goto EXIT;
 			break;
 		default:
 			goto EXIT;
@@ -2097,9 +2096,9 @@ void KODatUNO::DescribeCP()
 		//	DrawPoints(body->NurbsC[obj->Num].cp,body->NurbsC[obj->Num].K,1,3,col);
 		//}
 		if(obj->Type == _NURBSS){
-			for(int i=0;i<body->NurbsS[obj->Num].K[0];i++){
-				for(int j=0;j<body->NurbsS[obj->Num].K[1];j++){
-					DrawPoint(body->NurbsS[obj->Num].cp[i][j],1,3,col);
+			for(int i=0;i<body->vNurbsS[obj->Num]->K[0];i++){
+				for(int j=0;j<body->vNurbsS[obj->Num]->K[1];j++){
+					DrawPoint(body->vNurbsS[obj->Num]->cp[i][j],1,3,col);
 				}
 			}
 		}
@@ -2132,7 +2131,7 @@ void KODatUNO::GetSurfInfo()
 		sprintf(buf,"Surface No.: %d",obj->Num);
 		GuiIF.SetMessage(buf);
 		if(obj->Type == _NURBSS){
-			ns=&body->NurbsS[obj->Num];
+			ns=body->vNurbsS[obj->Num];
 			sprintf(buf,"NURBS Surface");
             GuiIF.SetMessage(buf);
 		}
@@ -2227,7 +2226,7 @@ void KODatUNO::DispUVdirection()
 		obj = (OBJECT *)SeldEntList.getData(pnum);
 		body = (BODY *)BodyList.getData(obj->Body);
 		if(obj->Type == _NURBSS)
-			ns = &body->NurbsS[obj->Num];
+			ns = body->vNurbsS[obj->Num];
 		else if(obj->Type == _TRIMMED_SURFACE)
 			ns = body->TrmS[obj->Num].pts;
 		double du = ns->U[1] - ns->U[0];
@@ -2343,7 +2342,7 @@ void KODatUNO::ChangeRank(int Newrank[2])
 		obj = (OBJECT *)SeldEntList.getData(pnum);
 		body = (BODY *)BodyList.getData(obj->Body);
 		if(obj->Type == _NURBSS){
-			ns=&body->NurbsS[obj->Num];
+			ns=body->vNurbsS[obj->Num];
 		}
 		else if(obj->Type == _TRIMMED_SURFACE){
 			ns=body->TrmS[obj->Num].pts;

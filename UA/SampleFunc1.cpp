@@ -138,7 +138,7 @@ int SmpNearestPt(BODYList *BodyList,OBJECTList *ObjList, int PickCount, double P
 		S = body->TrmS[obj->Num].pts;	// トリム面の場合は，トリム前の元のNURBS曲面を取り出す
 	}
 	else if(obj->Type == _NURBSS){
-		S = &body->NurbsS[obj->Num];	// ただのNURBS曲面の場合はそのままその曲面へのポインタを得る
+		S = body->vNurbsS[obj->Num];	// ただのNURBS曲面の場合はそのままその曲面へのポインタを得る
 	}
 	else{
 		return KOD_ERR;					// セレクションされた曲面がトリム面でもNURBS曲面でもでない場合は終了
