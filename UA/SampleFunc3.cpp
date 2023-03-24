@@ -13,7 +13,6 @@
 // D - Z方向分割数（粗加工用）
 void Smp3xCAM(NURBSS *S,NURBSC *C,double R,int N,double H,int D)
 {
-    NURBS_Func	nf;                 // NURBS_Funcへのインスタンス
     double green[3] = {0,1,0};      // 描画するパスの色（緑）
     Coord plane_pt;                 // 分割する平面上の1点
     Coord plane_n;                  // 分割する平面の法線ベクトル
@@ -26,14 +25,14 @@ void Smp3xCAM(NURBSS *S,NURBSC *C,double R,int N,double H,int D)
         double t = (double)i/(double)N;
 		if(i==0) t += 0.0001;		// 特異点回避
 		else if(i==N) t-= 0.0001;	// 特異点回避
-        plane_pt = nf.CalcNurbsCCoord(C,t);     // 注目中の垂直平面上の1点
-        plane_n = nf.CalcTanVecOnNurbsC(C,t);   // 注目中の垂直平面の法線ベクトル
-        VCoord path_ = nf.CalcIntersecPtsPlaneSearch(S,plane_pt,plane_n,0.5,3,RUNGE_KUTTA);  // 交点群算出
+        plane_pt = C->CalcNurbsCCoord(t);     // 注目中の垂直平面上の1点
+        plane_n = C->CalcTanVecOnNurbsC(t);   // 注目中の垂直平面の法線ベクトル
+        VCoord path_ = S->CalcIntersecPtsPlaneSearch(plane_pt,plane_n,0.5,3,RUNGE_KUTTA);  // 交点群算出
 		ptnum[i] = path_.size();
         // 得られた交点群を，加工面法線方向に工具半径分オフセットさせた点を得る
 		for(int j=0;j<ptnum[i];j++){
-            Coord pt = nf.CalcNurbsSCoord(S,path_[j].x,path_[j].y);     // 工具コンタクト点
-            Coord n = nf.CalcNormVecOnNurbsS(S,path_[j].x,path_[j].y);  // 法線ベクトル
+            Coord pt = S->CalcNurbsSCoord(path_[j].x,path_[j].y);     // 工具コンタクト点
+            Coord n = S->CalcNormVecOnNurbsS(path_[j].x,path_[j].y);  // 法線ベクトル
             if(n.z < 0)	n = n*(-1);         // 法線ベクトルの向き調整
 			path[D][i][j] = pt + n*R;		// 工具半径オフセット
 		}

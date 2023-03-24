@@ -25,8 +25,6 @@ int SmpContourLine(BODYList *BodyList,OBJECTList *ObjList, int PickCount, double
 
 	if(!PickCount)	return KOD_ERR;		// セレクションされていなかったら、何もしない
 
-	NURBS_Func	nfunc;					// NURBSを扱う関数集を呼び出す
-
 	OBJECT *obj = (OBJECT *)ObjList->getData(0);		// 一番最初にセレクションされたエンティティの情報を得る
 	BODY *body = (BODY *)BodyList->getData(obj->Body);	// 一番最初にセレクションされたBODYの実体を得る
 	if(obj->Type != _TRIMMED_SURFACE)	return KOD_ERR;	// セレクションされた曲面がトリム面でない場合は終了
@@ -53,11 +51,11 @@ int SmpContourLine(BODYList *BodyList,OBJECTList *ObjList, int PickCount, double
 		sprintf(mes,"z=%.3lf  calculating...",z);
 		GuiIF.SetMessage(mes);
 
-		VCoord t = nfunc.CalcIntersecPtsPlaneSearch(S,pt,nvec,feed,5,RUNGE_KUTTA);		// NURBS曲面と平面との交点群を交線追跡法で求める
+		VCoord t = S->CalcIntersecPtsPlaneSearch(pt,nvec,feed,5,RUNGE_KUTTA);		// NURBS曲面と平面との交点群を交線追跡法で求める
 
 		for(int i=0;i<t.size();i++){		// 交点の数だけループ
-			Coord p = nfunc.CalcNurbsSCoord(S,t[i].x,t[i].y);			// 交点をパラメータ値から座標値へ変換
-			Coord nt = nfunc.CalcNormVecOnNurbsS(S,t[i].x,t[i].y);		// 交点上の法線ベクトルを計算
+			Coord p = S->CalcNurbsSCoord(t[i].x,t[i].y);			// 交点をパラメータ値から座標値へ変換
+			Coord nt = S->CalcNormVecOnNurbsS(t[i].x,t[i].y);		// 交点上の法線ベクトルを計算
 			nt = nt*(-2);												// 外向き法線ベクトルへ変換し適当な長さにする
 			DrawPoint(p,1,3,blue);			// 交点を描画
 			DrawVector(p,nt,1,1,red);		// 法線ベクトルを描画
@@ -86,7 +84,6 @@ int SmpIntersectSurfs(BODYList *BodyList,OBJECTList *ObjList, int PickCount, dou
 {
 	if(!PickCount)	return KOD_ERR;		// セレクションされていなかったら、何もしない
 
-	NURBS_Func nfunc;				// NURBS関連の関数を集めたクラスのオブジェクトを生成
 	ACoord Rt(boost::extents[5000]);	// NURBS曲面R(w,t)における解
 	ACoord St(boost::extents[5000]);	// NURBS曲面S(u,v)における解
 	double green[3] = {0,1,0};		// 点表示の色
@@ -109,10 +106,10 @@ int SmpIntersectSurfs(BODYList *BodyList,OBJECTList *ObjList, int PickCount, dou
 	NURBSS *S1 = body1->TrmS[obj1->Num].pts;	// BODY1からNURBS曲面を取り出す
 	NURBSS *S2 = body2->TrmS[obj2->Num].pts;	// BODY2からNURBS曲面を取り出す
 
-	int num = nfunc.CalcIntersecPtsNurbsSSearch(S1,S2,10,feed,Rt,St,5000);	// NURBS曲面同士の交線算出
+	int num = S1->CalcIntersecPtsNurbsSSearch(S2,10,feed,Rt,St,5000);	// NURBS曲面同士の交線算出
 
 	for(int i=0;i<num;i++){
-		Coord p = nfunc.CalcNurbsSCoord(S1,Rt[i].x,Rt[i].y);	// uv座標上の点をxyz座標値に変換
+		Coord p = S1->CalcNurbsSCoord(Rt[i].x,Rt[i].y);	// uv座標上の点をxyz座標値に変換
 		DrawPoint(p,1,3,green);									// 描画
 	}
 
@@ -135,7 +132,6 @@ int SmpMeanCurvature(BODYList *BodyList,OBJECTList *ObjList, int PickCount, doub
 {
 	if(!PickCount)	return KOD_ERR;		// セレクションされていなかったら、何もしない
 
-	NURBS_Func nfunc;
 	double blue[3] = {0,0,1};
 
 	OBJECT *obj = (OBJECT *)ObjList->getData(0);		// 一番最初にセレクションされたエンティティの情報を得る
@@ -151,8 +147,8 @@ int SmpMeanCurvature(BODYList *BodyList,OBJECTList *ObjList, int PickCount, doub
 		double u = S->U[0]+(double)i*(S->U[1] - S->U[0])/(udiv+1);
 		for(int j=0;j<=vdiv;j++){
 			double v = S->V[0]+(double)j*(S->V[1] - S->V[0])/(vdiv+1);
-			Coord P = nfunc.CalcNurbsSCoord(S,u,v);				// 現在の(u,v)上の(x,y,z)を求める
-			Coord Hn = nfunc.CalcMeanCurvatureNormVec(S,u,v);	// 平均曲率法線ベクトルを求める
+			Coord P = S->CalcNurbsSCoord(u,v);					// 現在の(u,v)上の(x,y,z)を求める
+			Coord Hn = S->CalcMeanCurvatureNormVec(u,v);		// 平均曲率法線ベクトルを求める
 			DrawVector(P,Hn,100,1,blue);						// 平均曲率法線ベクトルを表示
 		}
 	}

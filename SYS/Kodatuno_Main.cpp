@@ -1623,7 +1623,6 @@ void KODatUNO::UVWireView()
 	BODY *body;
 	OBJECT *obj;
 	NURBSS *NurbsS;
-	NURBS_Func NFunc;
 	Coord p;
 	glDisable(GL_LIGHTING);
 	glLineWidth(1);
@@ -1648,13 +1647,13 @@ void KODatUNO::UVWireView()
 			for(int j=0;j<11;j++){
 				glBegin(GL_LINE_STRIP);
 				for(int k=0;k<51;k++){		// v方向パラメータライン描画
-					p = NFunc.CalcNurbsSCoord(NurbsS,0.1*(double)j*du,0.02*(double)k*dv);
+					p = NurbsS->CalcNurbsSCoord(0.1*(double)j*du,0.02*(double)k*dv);
 					glVertex3d(p.x,p.y,p.z);
 				}
 				glEnd();
 				glBegin(GL_LINE_STRIP);
 				for(int k=0;k<51;k++){		// u方向パラメータライン描画
-					p = NFunc.CalcNurbsSCoord(NurbsS,0.02*(double)k*du,0.1*(double)j*dv);
+					p = NurbsS->CalcNurbsSCoord(0.02*(double)k*du,0.1*(double)j*dv);
 					glVertex3d(p.x,p.y,p.z);
 				}
 				glEnd();
@@ -1719,7 +1718,6 @@ void KODatUNO::GetShiftBody(Coord d)
 
 	BODY *body;
 	OBJECT *obj;	
-	NURBS_Func NFunc;
 
 	obj = (OBJECT *)SeldEntList.getData(0);
 	body = (BODY *)BodyList.getData(obj->Body);
@@ -1741,7 +1739,6 @@ void KODatUNO::GetRotateBody(Coord ax,double d)
 
 	BODY *body;
 	OBJECT *obj;	
-	NURBS_Func NFunc;
 
 	obj = (OBJECT *)SeldEntList.getData(0);
 	body = (BODY *)BodyList.getData(obj->Body);
@@ -1758,7 +1755,6 @@ void KODatUNO::GetRotateBody(Coord ax,double d)
 // r - 各軸方向拡大率
 void KODatUNO::ExpandBody(Coord r)
 {
-	NURBS_Func NFunc;
 	OBJECT *obj;
 	BODY *body;
 
@@ -1779,7 +1775,6 @@ void KODatUNO::ExpandBody(Coord r)
 // Flag - 回転サーフェス(Flag = ROTSURF) or スイープサーフェス(Flag = SWEEPSURF)を指定する
 int KODatUNO::GenSurface(Coord Axis,double Prop,int Flag)
 {
-	NURBS_Func NFunc;
 	OBJECT *obj;
 	BODY *body,*newbody;
 	NURBSS* nurbs = NULL;
@@ -1790,11 +1785,11 @@ int KODatUNO::GenSurface(Coord Axis,double Prop,int Flag)
 			body = SearchBodyList(&BodyList,obj->Body);								// そのNURBS曲線が属しているBODYの実体を得る
 			newbody = new BODY;														// 新しく生成する回転サーフェス用のBODYをメモリー確保
 			if(Flag == ROTSURF){
-				nurbs = NFunc.GenRotNurbsS(body->vNurbsC[obj->Num],Axis,Prop);		// 回転サーフェス生成
+				nurbs = body->vNurbsC[obj->Num]->GenRotNurbsS(Axis,Prop);		// 回転サーフェス生成
 				if ( !nurbs ) goto EXIT;
 			}
 			else if(Flag == SWEEPSURF){
-				nurbs = NFunc.GenSweepNurbsS(body->vNurbsC[obj->Num],Axis,Prop);	// スイープサーフェス生成
+				nurbs = body->vNurbsC[obj->Num]->GenSweepNurbsS(Axis,Prop);	// スイープサーフェス生成
 				if ( !nurbs ) goto EXIT;
 			}
 			nurbs->TrmdSurfFlag = KOD_FALSE;										// トリムのない単純なNURBS曲面であることを明示
@@ -1833,7 +1828,6 @@ int KODatUNO::GenNurbsCurve(int Val,char *Fname,int M)
 		return KOD_ERR;
 	}
 
-	NURBS_Func NFunc;
 	FILE *fp;
 	char buf[256];
 	ACoord pt(boost::extents[CTLPNUMMAX]);
@@ -1861,22 +1855,22 @@ int KODatUNO::GenNurbsCurve(int Val,char *Fname,int M)
 	NURBSC* nurb;
 	switch(Val){
 		case 1:
-			nurb = NFunc.GenPolygonalLine(pt);	// 折れ線
+			nurb = GenPolygonalLine(pt);	// 折れ線
 			break;
 		case 2:
-			nurb = NFunc.GenInterpolatedNurbsC1(pt,M);	// 点列補間NURBS曲線
+			nurb = GenInterpolatedNurbsC1(pt,M);	// 点列補間NURBS曲線
 			if( !nurb ) goto EXIT;
 			break;
 		case 3:
-			nurb = NFunc.GenApproximationNurbsC(pt,M);	// 点列近似NURBS曲線
+			nurb = GenApproximationNurbsC(pt,M);	// 点列近似NURBS曲線
 			if( !nurb ) goto EXIT;
 			break;
 		case 4:
-			nurb = NFunc.GenInterpolatedNurbsC2(pt,M);	// 点列補間NURBS曲線
+			nurb = GenInterpolatedNurbsC2(pt,M);	// 点列補間NURBS曲線
 			if( !nurb ) goto EXIT;
 			break;			
 		case 5:
-			nurb = NFunc.GenNurbsCfromCP(pt,M);			// コントロールポイントからNURBS曲線を生成
+			nurb = GenNurbsCfromCP(pt,M);			// コントロールポイントからNURBS曲線を生成
 			if ( !nurb ) goto EXIT;
 			break;
 		default:
@@ -1915,7 +1909,6 @@ int KODatUNO::GenNurbsSurface(int Val,char *Fname,int M)
 		return KOD_ERR;
 	}
 
-	NURBS_Func NFunc;
 	FILE *fp;
 	char buf[256];
 	AACoord pt;
@@ -1960,18 +1953,18 @@ int KODatUNO::GenNurbsSurface(int Val,char *Fname,int M)
 	NURBSS* nurb;
 	switch(Val){
 		case 1:
-			nurb = NFunc.GenPolygonalSurface(pt,row,col);	// 折れ面
+			nurb = GenPolygonalSurface(pt,row,col);	// 折れ面
 			break;
 		case 2:
-			nurb = NFunc.GenInterpolatedNurbsS1(pt,row,col,M,M);	// 点列補間NURBS曲面
+			nurb = GenInterpolatedNurbsS1(pt,row,col,M,M);	// 点列補間NURBS曲面
 			if ( !nurb ) goto EXIT;
 			break;
 		case 3:
-			nurb = NFunc.GenApproximationNurbsS(pt,row,col,M,M);	// 点列補間NURBS曲面
+			nurb = GenApproximationNurbsS(pt,row,col,M,M);	// 点列補間NURBS曲面
 			if ( !nurb ) goto EXIT;
 			break;
 		case 5:
-			nurb = NFunc.GenNurbsSfromCP(pt,row,col,M,M);			// コントロールポイントからNURBS曲面を生成
+			nurb = GenNurbsSfromCP(pt,row,col,M,M);			// コントロールポイントからNURBS曲面を生成
 			if ( !nurb ) goto EXIT;
 			break;
 		default:
@@ -2216,7 +2209,6 @@ void KODatUNO::DispUVdirection()
 	BODY *body;
 	OBJECT *obj;
 	NURBSS *ns;
-	NURBS_Func NFunc;
 	Coord p;
 
 	glDisable(GL_LIGHTING);
@@ -2234,7 +2226,7 @@ void KODatUNO::DispUVdirection()
 		glColor3f(1,1,0);
 		glBegin(GL_LINE_STRIP);
 		for(int i=0;i<11;i++){		// U方向パラメータライン描画
-			p = NFunc.CalcNurbsSCoord(ns,0.1*(double)i*du,0);
+			p = ns->CalcNurbsSCoord(0.1*(double)i*du,0);
 			glVertex3d(p.x,p.y,p.z);
 		}
 		glEnd();
@@ -2242,7 +2234,7 @@ void KODatUNO::DispUVdirection()
 		glColor3f(0,0.749,1);
 		glBegin(GL_LINE_STRIP);
 		for(int i=0;i<11;i++){		// V方向パラメータライン描画
-			p = NFunc.CalcNurbsSCoord(ns,0,0.1*(double)i*dv);
+			p = ns->CalcNurbsSCoord(0,0.1*(double)i*dv);
 			glVertex3d(p.x,p.y,p.z);
 		}
 		glEnd();
@@ -2250,7 +2242,7 @@ void KODatUNO::DispUVdirection()
 		glPointSize(8);
 		glColor3f(1,1,1);
 		glBegin(GL_POINTS);
-		p = NFunc.CalcNurbsSCoord(ns,0,0);
+		p = ns->CalcNurbsSCoord(0,0);
 		glVertex3d(p.x,p.y,p.z);
 		glEnd();
 	}
@@ -2267,7 +2259,6 @@ void KODatUNO::DispUVinfo()
     char buf[256];
     BODY *body;
     OBJECT *obj;
-    NURBS_Func NFunc;
     COMPC *CompC;
 
     glDisable(GL_LIGHTING);
@@ -2333,7 +2324,6 @@ void KODatUNO::ChangeRank(int Newrank[2])
 		return;
 	}
 
-	NURBS_Func NFunc;
 	BODY *body;
 	OBJECT *obj;
 	NURBSS *ns;
@@ -2375,8 +2365,8 @@ void KODatUNO::ChangeRank(int Newrank[2])
 			flag = true;
 		}
 
-		ns->S = NFunc.GetEqIntervalKont(ns->K[0],ns->M[0]);	// ノットベクトルを再設定
-		ns->T = NFunc.GetEqIntervalKont(ns->K[1],ns->M[1]);
+		ns->S = GetEqIntervalKont(ns->K[0],ns->M[0]);	// ノットベクトルを再設定
+		ns->T = GetEqIntervalKont(ns->K[1],ns->M[1]);
 		ns->U[0] = ns->V[0] = 0;		// ノットベクトルの範囲を指定
 		ns->U[1] = ns->V[1] = NORM_KNOT_VAL;		
 	}
