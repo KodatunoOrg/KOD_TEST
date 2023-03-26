@@ -29,7 +29,7 @@ int SmpContourLine(BODYList *BodyList,OBJECTList *ObjList, int PickCount, double
 	BODY *body = (BODY *)BodyList->getData(obj->Body);	// 一番最初にセレクションされたBODYの実体を得る
 	if(obj->Type != _TRIMMED_SURFACE)	return KOD_ERR;	// セレクションされた曲面がトリム面でない場合は終了
 
-	NURBSS *S = body->TrmS[obj->Num].pts;				// BODYからNURBS曲面を取り出す
+	NURBSS *S = body->vTrmS[obj->Num]->pts;				// BODYからNURBS曲面を取り出す
 
 	double red[3] = {1,0,0};		// 法線ベクトル表示の色
 	double blue[3] = {0,0,1};		// 点表示の色
@@ -103,8 +103,8 @@ int SmpIntersectSurfs(BODYList *BodyList,OBJECTList *ObjList, int PickCount, dou
 	if(obj1->Type != _TRIMMED_SURFACE || obj2->Type != _TRIMMED_SURFACE)	// セレクションされた2つのエンティティがトリム面でない場合は終了
 		return KOD_ERR;
 
-	NURBSS *S1 = body1->TrmS[obj1->Num].pts;	// BODY1からNURBS曲面を取り出す
-	NURBSS *S2 = body2->TrmS[obj2->Num].pts;	// BODY2からNURBS曲面を取り出す
+	NURBSS *S1 = body1->vTrmS[obj1->Num]->pts;	// BODY1からNURBS曲面を取り出す
+	NURBSS *S2 = body2->vTrmS[obj2->Num]->pts;	// BODY2からNURBS曲面を取り出す
 
 	int num = S1->CalcIntersecPtsNurbsSSearch(S2,10,feed,Rt,St,5000);	// NURBS曲面同士の交線算出
 
@@ -138,7 +138,7 @@ int SmpMeanCurvature(BODYList *BodyList,OBJECTList *ObjList, int PickCount, doub
 	BODY *body = (BODY *)BodyList->getData(obj->Body);	// 一番最初にセレクションされたBODYの実体を得る
 	if(obj->Type != _TRIMMED_SURFACE)	return KOD_ERR;	// セレクションされた曲面がトリム面でない場合は終了
 
-	NURBSS *S = body->TrmS[obj->Num].pts;				// BODYからNURBS曲面を取り出す
+	NURBSS *S = body->vTrmS[obj->Num]->pts;				// BODYからNURBS曲面を取り出す
 
 	int udiv = (int)Prop[0];		// u方向分割数
 	int vdiv = (int)Prop[1];		// v方向分割数

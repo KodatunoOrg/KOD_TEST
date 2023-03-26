@@ -133,7 +133,7 @@ int SmpNearestPt(BODYList *BodyList,OBJECTList *ObjList, int PickCount, double P
 	// KODATUNOでは，IGESファイル読み込みの段階で全ての面/線がNURBS曲面/曲線へとされるため，
 	// 次のような3つの条件分岐によって欲しい面を取り出すことができる
 	if(obj->Type == _TRIMMED_SURFACE){
-		S = body->TrmS[obj->Num].pts;	// トリム面の場合は，トリム前の元のNURBS曲面を取り出す
+		S = body->vTrmS[obj->Num]->pts;	// トリム面の場合は，トリム前の元のNURBS曲面を取り出す
 	}
 	else if(obj->Type == _NURBSS){
 		S = body->vNurbsS[obj->Num];	// ただのNURBS曲面の場合はそのままその曲面へのポインタを得る
@@ -191,7 +191,7 @@ int SmpUVDivLine(BODYList *BodyList,OBJECTList *ObjList, int PickCount, double P
 	// 本来であれば，Sample4に示した曲面のタイプによる条件分岐が必要であるが，これ以降のSampleではトリム面で決め打ちする
 	if(obj->Type != _TRIMMED_SURFACE)	return KOD_ERR;	
 
-	NURBSS *S = body->TrmS[obj->Num].pts;				// BODYからNURBS曲面を取り出す
+	NURBSS *S = body->vTrmS[obj->Num]->pts;				// BODYからNURBS曲面を取り出す
 
 	int u_divnum = (int)Prop[0];						// ユーザーステータスのprop1をu方向分割数として読み込み
 	int v_divnum = (int)Prop[1];						// ユーザーステータスのprop2をv方向分割数として読み込み

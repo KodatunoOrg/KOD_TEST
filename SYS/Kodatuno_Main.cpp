@@ -307,7 +307,7 @@ void KODatUNO::Draw_TrimSurfe(BODY *Curr_body)
 {
 	for(int i=0;i<Curr_body->TypeNum[_TRIMMED_SURFACE];i++){
 		glPushName(i);			// ネームスタックの先頭にiを挿入
-        DrawTrimdSurf(&Curr_body->TrmS[i]);
+        DrawTrimdSurf(Curr_body->vTrmS[i]);
 		glPopName();			// ネームスタックの先頭を削除
 	}
 }
@@ -1109,7 +1109,7 @@ void KODatUNO::SelectAll()
 				bool flag = false;
 				// トリムド曲面として選択済みの場合は何もしない
 				for(int k=0;k<body->TypeNum[_TRIMMED_SURFACE];k++){
-					if(body->TrmS[j].pts == body->vNurbsS[k]){		// このイコールはたぶん無理 K.Magara
+					if(body->vTrmS[j]->pts == body->vNurbsS[k]){		// このイコールはたぶん無理 K.Magara
 						flag = true;
 						break;
 					}
@@ -1639,7 +1639,7 @@ void KODatUNO::UVWireView()
 			num = body->TypeNum[_NURBSS];
 		for(int i=0;i<num;i++){
 			if(body->vNurbsS[0]->TrmdSurfFlag == KOD_TRUE)
-				NurbsS = body->TrmS[i].pts;
+				NurbsS = body->vTrmS[i]->pts;
 			else
 				NurbsS = body->vNurbsS[i];
 			double du = NurbsS->U[1] - NurbsS->U[0];
@@ -2096,9 +2096,9 @@ void KODatUNO::DescribeCP()
 			}
 		}
 		else if(obj->Type == _TRIMMED_SURFACE){
-			for(int i=0;i<body->TrmS[obj->Num].pts->K[0];i++){
-				for(int j=0;j<body->TrmS[obj->Num].pts->K[1];j++){
-					DrawPoint(body->TrmS[obj->Num].pts->cp[i][j],1,3,col);
+			for(int i=0;i<body->vTrmS[obj->Num]->pts->K[0];i++){
+				for(int j=0;j<body->vTrmS[obj->Num]->pts->K[1];j++){
+					DrawPoint(body->vTrmS[obj->Num]->pts->cp[i][j],1,3,col);
 				}
 			}
 		}
@@ -2129,7 +2129,7 @@ void KODatUNO::GetSurfInfo()
             GuiIF.SetMessage(buf);
 		}
 		else if(obj->Type == _TRIMMED_SURFACE){
-			ns=body->TrmS[obj->Num].pts;
+			ns=body->vTrmS[obj->Num]->pts;
 			sprintf(buf,"TRIMED Surface");
             GuiIF.SetMessage(buf);
 		}
@@ -2220,7 +2220,7 @@ void KODatUNO::DispUVdirection()
 		if(obj->Type == _NURBSS)
 			ns = body->vNurbsS[obj->Num];
 		else if(obj->Type == _TRIMMED_SURFACE)
-			ns = body->TrmS[obj->Num].pts;
+			ns = body->vTrmS[obj->Num]->pts;
 		double du = ns->U[1] - ns->U[0];
 		double dv = ns->V[1] - ns->V[0];
 		glColor3f(1,1,0);
@@ -2285,7 +2285,7 @@ void KODatUNO::DispUVinfo()
         else if(obj->Type == _TRIMMED_SURFACE){
             // 外周面上線
             glColor3f(1,0,0);	// 赤
-            CompC = body->TrmS[obj->Num].pTO->pB.CompC;
+            CompC = body->vTrmS[obj->Num]->pTO->pB.CompC;
             //fprintf(stderr,"Nuber of Outer Trim Curve : %d\n",CompC->N);	// debug
             for(int i=0;i<CompC->N;i++){
                 DrawNurbsCurve(CompC->pDE[i].NurbsC);
@@ -2293,8 +2293,8 @@ void KODatUNO::DispUVinfo()
 
             // 内周面上線
             glColor3f(0,0,1);	// 青
-            for(int i=0;i< body->TrmS[obj->Num].n2;i++){
-                CompC = body->TrmS[obj->Num].pTI[i]->pB.CompC;
+            for(int i=0;i< body->vTrmS[obj->Num]->vTI.size();i++){
+                CompC = body->vTrmS[obj->Num]->vTI[i]->pB.CompC;
                 //fprintf(stderr,"Nuber of Inner Trim Curve : %d\n",CompC->N);	// debug
                 for(int j=0;j<CompC->N;j++){
                     DrawNurbsCurve(CompC->pDE[j].NurbsC);
@@ -2335,7 +2335,7 @@ void KODatUNO::ChangeRank(int Newrank[2])
 			ns=body->vNurbsS[obj->Num];
 		}
 		else if(obj->Type == _TRIMMED_SURFACE){
-			ns=body->TrmS[obj->Num].pts;
+			ns=body->vTrmS[obj->Num]->pts;
 		}
 		else
 			continue;

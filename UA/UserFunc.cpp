@@ -205,7 +205,7 @@ int USER::ExecSampleFunc3(BODYList *BodyList,OBJECTList *ObjList,int PickCount)
         OBJECT *obj = (OBJECT *)ObjList->getData(i);			// 一番最初にセレクションされたエンティティの情報を得る
         BODY *body = (BODY *)BodyList->getData(obj->Body);		// 一番最初にセレクションされたBODYの実体を得る
         if(i==0)
-            S = body->TrmS[obj->Num].pts;
+            S = body->vTrmS[obj->Num]->pts;
         else if(i==1)
             C = body->vNurbsC[obj->Num];
     }
